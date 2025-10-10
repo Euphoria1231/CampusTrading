@@ -1,6 +1,81 @@
+// base.less 用于存放全局变量
+
+// 颜色
+@primary-color: #242830;
+// 主题颜色
+@theme-color: #d2d8fd;
+// 侧边栏选中背景颜色
+@sidebar-selected-bg-color: #acbaf7; // 侧边栏hover背景颜色
+@sidebar-hover-bg-color: #d5dcff;
+// 筛选栏背景颜色
+@filter-bg-color: #f8f9ff;
+
 @font-face {
-  font-family: '思源雅黑';
-  src: url('/fonts/SourceHanSerifCN-Regular.ttf');
+  font-family: 阿里巴巴普惠体;
+  src: url('/fonts/AlibabaPuHuiTi-3-55-Regular.ttf');
+
 }
-@primary-font: '思源雅黑', 'Microsoft YaHei', sans-serif;
-@primary-color: #000;
+
+@primary-font: 阿里巴巴普惠体, "Microsoft YaHei", sans-serif;
+@primary-font-color: #444348;
+// 主题字体色
+@primary-theme-font-color: #4d45ca;
+// 字体大小
+@font-size-base: 12px;
+@font-size-level-1: 14px;
+@font-size-level-2: 16px;
+@font-size-level-3: 18px;
+@font-size-level-4: 20px;
+@font-size-level-5: 24px;
+@font-size-level-6: 28px;
+@font-size-level-7: 32px;
+@font-size-level-8: 36px;
+@font-size-level-9: 40px;
+@font-size-level-10: 48px;
+
+// 按钮
+// 按钮颜色
+@btn-primary-color: #4d45ca;
+// 按钮字体颜色
+@btn-primary-font-color: #fff;
+// 按钮圆角
+@btn-border-radius-3: 3px;
+@btn-border-radius-5: 5px;
+@btn-border-radius-7: 7px;
+@btn-border-radius-base: 8px;
+@btn-border-radius-10: 10px;
+
+// icon
+@icon-primary-color: #4d45ca;
+
+// 边框
+@border-color-base: #c8d1fa;
+
+// 尺寸
+
+// 动画
+
+// 透明度
+
+// 其它
+.button-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(108, 103, 255, 0.3);
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.content-title {
+  background: linear-gradient(90deg, #6C67FF 0%, #973E99 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 700;
+}
+
+.green-point {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #00FF6E;
+}

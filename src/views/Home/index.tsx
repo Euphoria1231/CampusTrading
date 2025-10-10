@@ -1,30 +1,169 @@
-import { useEffect, useRef, useState, type FC } from "react";
-import { useNavigate } from "react-router-dom";
 import './index.less';
-import './feature.less';
-import './hero.less';
-import './spark.less';
 import TypeWriter from "@/components/TypeWriter";
-import { ArrowRightOutlined } from "@ant-design/icons";
+import { useEffect, useRef, useState, type FC } from "react";
 import { Image } from "antd";
+import { useNavigate } from "react-router-dom";
+import { ArrowRightOutlined } from "@ant-design/icons";
 import FeatureIcon01 from '@/assets/icons/feature-icon-01.svg';
 import FeatureIcon02 from '@/assets/icons/feature-icon-02.svg';
 import FeatureIcon03 from '@/assets/icons/feature-icon-03.svg';
 import FeatureIcon04 from '@/assets/icons/feature-icon-04.svg';
 import FeatureIcon05 from '@/assets/icons/pricing-illustration.svg';
-import FeatureImage from '@/assets/images/home-feature.png';
-import avatar from '@/assets/images/avatar.jpg'
+import FeatureImage from '@/assets/images/home-feature.png'
+import SystemLayoutNoBackground from '@/components/SystemLayout/SystemLayoutNoBackground';
+
+// import type { ContextMenuOptionsProps } from '@/components/ContextMenu';
 
 const Home: FC = () => {
-  const navigate = useNavigate();
+  // // 右键菜单参数
+  // const options: ContextMenuOptionsProps = {
+  //   menus: [
+  //     {
+  //       name: '首页',
+  //       onClick: () => console.log('1')
+  //     },
+  //     {
+  //       name: '地点1',
+  //       onClick: () => console.log('2')
+  //     },
+  //     {
+  //       name: '地点2',
+  //       onClick: () => console.log('3')
+  //     },
+  //   ]
+  // }
 
+  // // 粒子参数
+  // const particleOptions = {
+  //   "fpsLimit": 60,
+  //   "fullScreen": {
+  //     "zIndex": 0
+  //   },
+  //   "interactivity": {
+  //     "events": {
+  //       "onClick": {
+  //         "enable": true,
+  //         "mode": "push"
+  //       },
+  //       "onHover": {
+  //         "enable": true,
+  //         "mode": ["grab", "attract"],
+  //         "parallax": {
+  //           "enable": true,
+  //           "force": 60,
+  //           "smooth": 10
+  //         }
+  //       },
+  //       "resize": true
+  //     },
+  //     "modes": {
+  //       "push": {
+  //         "quantity": 4
+  //       },
+  //       "grab": {
+  //         "distance": 140,
+  //         "links": {
+  //           "opacity": 1
+  //         }
+  //       },
+  //       "bubble": {
+  //         "distance": 400,
+  //         "duration": 2,
+  //         "opacity": 8,
+  //         "size": 40,
+  //         "speed": 3
+  //       },
+  //       "repulse": {
+  //         "distance": 200,
+  //         "duration": 0.4
+  //       },
+  //       "remove": {
+  //         "particles_nb": 2
+  //       }
+  //     }
+  //   },
+  //   "particles": {
+  //     "color": {
+  //       "value": "#7c7c7c"
+  //     },
+  //     "links": {
+  //       "color": {
+  //         "value": "#7c7c7c"
+  //       },
+  //       "distance": 150,
+  //       "enable": true,
+  //       "opacity": 0.4,
+  //       "width": 1
+  //     },
+  //     "move": {
+  //       "enable": true,
+  //       "speed": 4,
+  //       "direction": "none",
+  //       "random": true,
+  //       "straight": false,
+  //       "outModes": "out",
+  //       "bounce": false,
+  //       "attract": {
+  //         "rotate": {
+  //           "x": 600,
+  //           "y": 1200
+  //         }
+  //       }
+  //     },
+  //     "number": {
+  //       "value": 130,
+  //       "density": {
+  //         "enable": true,
+  //         "area": 800
+  //       }
+  //     },
+  //     "opacity": {
+  //       "value": 0.5,
+  //       "random": false,
+  //       "animation": {
+  //         "enable": false,
+  //         "speed": 1,
+  //         "minimumValue": 0.1,
+  //         "sync": false
+  //       }
+  //     },
+  //     "shape": {
+  //       "type": "circle",
+  //       "stroke": {
+  //         "width": 0,
+  //         "color": "#000000"
+  //       },
+  //       "polygon": {
+  //         "sides": 5
+  //       },
+  //       "image": {
+  //         "src": "img/github.svg",
+  //         "width": 100,
+  //         "height": 100
+  //       }
+  //     },
+  //     "size": {
+  //       "value": 3,
+  //       "random": true,
+  //       "animation": {
+  //         "enable": false,
+  //         "speed": 40,
+  //         "minimumValue": 0.1,
+  //         "sync": false
+  //       }
+  //     }
+  //   },
+  //   "detectRetina": true
+  // };
+  const navigate = useNavigate();
   // 动画控制 ref
-  const mainRef = useRef<HTMLDivElement>(null);
   const figureRef = useRef<HTMLDivElement>(null);
   const sparkRef = useRef<HTMLDivElement>(null);
+  const mainRef = useRef<HTMLDivElement>(null);
   const Card2Ref = useRef<HTMLDivElement>(null);
   const Card3Ref = useRef<HTMLDivElement>(null);
   const Card4Ref = useRef<HTMLDivElement>(null);
+
   // 动画控制开关
   const [sparkStart, setSparkStart] = useState(false);
   const onScroll = (events: React.UIEvent<HTMLDivElement, UIEvent>) => {
@@ -65,373 +204,359 @@ const Home: FC = () => {
 
     return () => clearTimeout(timer);
   }, []);
+
   return (
-    <div
-      onScroll={onScroll}
-      className="home-container has-animations">
-      <header className="home-header">
-        <div className="home-header-logo">
-          <div className="home-header-logo-text">
-            <span className="home-header-logo-text-highlight">校园易物</span>
-          </div>
-          <div className="home-header-logo-info">二手交易平台</div>
-        </div>
-        <div className="home-header-nav">
-          <Image className="home-header-nav-item-avatar" src={avatar} preview={false}></Image>
-          <span className="home-header-nav-item-text">（用户管理子系统）</span>
-        </div>
-      </header>
-      <main
-        ref={mainRef}
-        className="home-main">
-        <section className="hero">
-          <div className="container">
-            <div className="hero-inner">
-              <div className="hero-copy">
-                <TypeWriter
-                  className="hero-title"
-                  delay={50}
-                  text={[
-                    'Hi, 我是 ',
-                    { text: '校园易物', className: 'hero-title-highlight' },
-                    '，您的',
-                    { text: '交易助手', className: 'hero-title-highlight' }
-                  ]} />
-                <p className="hero-paragraph">让我帮助您实现物品价值最大化</p>
-                <div className="hero-cta">
-                  <div
-                    onClick={() => navigate('dashboard')}
-                    className="button button-primary">（交易管理子系统）<ArrowRightOutlined /> </div>
+    <>
+      <SystemLayoutNoBackground onScroll={onScroll} >
+        <main
+          className='home-container'
+          ref={mainRef}
+        >
+          <section className="hero">
+            <div className="container">
+              <div className="hero-inner">
+                <div className="hero-copy">
+                  <TypeWriter
+                    className="hero-title"
+                    delay={50}
+                    text={[
+                      'Hi, 欢迎来到',
+                      { text: '校园易物', className: 'hero-title-highlight' },
+                      '，你的',
+                      { text: '校园交易助手', className: 'hero-title-highlight' }
+                    ]} />
+                  <p className="hero-paragraph">让我们一起开启绿色交易，让闲置好物重获新生，共建美好校园</p>
+                  <div className="hero-cta">
+                    <div
+                      onClick={() => navigate('trade-manage')}
+                      className="button button-primary">开始交易<ArrowRightOutlined /> </div>
+                  </div>
+                </div>
+                <div className="home-figure anime-element" ref={figureRef}>
+                  <svg className="home-figure-placeholder" width="528" height="396" viewBox="0 0 528 396">
+                    <rect width="528" height="396" style={{ fill: 'transparent' }} />
+                  </svg>
+                  <div className="home-figure-box home-figure-box-01"></div>
+                  <div className="home-figure-box home-figure-box-02"></div>
+                  <div className="home-figure-box home-figure-box-03"></div>
+                  <div className="home-figure-box home-figure-box-04"></div>
+                  <div className="home-figure-box home-figure-box-05"></div>
+                  <div className="home-figure-box home-figure-box-06"></div>
+                  <div className="home-figure-box home-figure-box-07"></div>
+                  <div className="home-figure-box home-figure-box-08"></div>
+                  <div className="home-figure-box home-figure-box-09"></div>
+                  <div className="home-figure-box home-figure-box-10"></div>
+                  <div className="home-figure-box home-figure-box-routes">
+                    <a
+                      onClick={() => navigate('goods')}
+                      className="home-figure-box-route">
+                      商品管理
+                    </a>
+                    <a
+                      onClick={() => navigate('connection')}
+                      className="home-figure-box-route">
+                      在线沟通
+                    </a>
+                    <a
+                      onClick={() => navigate('feedback')}
+                      className="home-figure-box-route">
+                      反馈中心
+                    </a>
+                  </div>
                 </div>
               </div>
-              <div className="home-figure anime-element" ref={figureRef}>
-                <svg className="home-figure-placeholder" width="528" height="396" viewBox="0 0 528 396">
-                  <rect width="528" height="396" style={{ fill: 'transparent' }} />
+            </div>
+          </section>
+          <section className="feature">
+            <div className="feature-container">
+              <div className="feature-item" style={{ opacity: 1 }}>
+                <div className="feature-item-header">
+                  <Image
+                    src={FeatureIcon01}
+                    preview={false}
+                    className='feature-item-header-img' />
+                  <div className="feature-item-header-title">
+                    商品管理
+                    <p className="feature-item-header-subtitle">闲置物品，轻松管理</p>
+                  </div>
+                </div>
+                <div className='feature-item-content-wrapper'>
+                  <div className="feature-item-content">
+                    <ul className="feature-item-content-left">
+                      <li>创建商品信息，图文并茂展示详情</li>
+                      <li>修改商品内容，随时更新最新状态</li>
+                      <li>浏览商品列表，快速查找心仪好物</li>
+                    </ul>
+                    <div className="feature-item-content-right">
+                      <Image
+                        src={FeatureImage}
+                        preview={false}
+                        className='feature-item-content-right-item'
+                        style={{
+                          top: '-30px',
+                          left: '40px'
+                        }}
+                      />
+                      <Image
+                        src={FeatureImage}
+                        preview={false}
+                        className='feature-item-content-right-item'
+                        style={{
+                          top: '-25px',
+                          left: '50px',
+
+                        }}
+                      />
+                      <Image
+                        src={FeatureImage}
+                        preview={false}
+                        className='feature-item-content-right-item'
+                        style={{
+                          left: '60px',
+                          top: '-20px'
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div ref={Card2Ref} className="feature-item">
+                <div className="feature-item-header feature-right">
+                  <Image
+                    src={FeatureIcon02}
+                    preview={false}
+                    className='feature-item-header-img' />
+                  <div className="feature-item-header-title">
+                    交易管理
+                    <p className="feature-item-header-subtitle">交易流程，清晰明了</p>
+                  </div>
+                </div>
+                <div className='feature-item-content-wrapper feature-right'>
+                  <div className="feature-item-content feature-right">
+                    <ul className="feature-item-content-left">
+                      <li>申请交易意向，一键发起购买请求</li>
+                      <li>接受交易申请，确认订单开启流程</li>
+                      <li>查询交易记录，历史订单一目了然</li>
+                    </ul>
+                    <div className="feature-item-content-right">
+                      <Image
+                        src={FeatureImage}
+                        preview={false}
+                        className='feature-item-content-right-item'
+                        style={{
+                          top: '-20px',
+                          right: '70px',
+
+                        }}
+                      />
+                      <Image
+                        src={FeatureImage}
+                        preview={false}
+                        className='feature-item-content-right-item'
+                        style={{
+                          top: '-15px',
+                          right: '60px',
+
+                        }}
+                      />
+                      <Image
+                        src={FeatureImage}
+                        preview={false}
+                        className='feature-item-content-right-item'
+                        style={{
+                          right: '50px',
+                          top: '-10px',
+
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div ref={Card3Ref} className="feature-item">
+                <div className="feature-item-header">
+                  <Image
+                    src={FeatureIcon03}
+                    preview={false}
+                    className='feature-item-header-img' />
+                  <div className="feature-item-header-title">
+                    消息通讯
+                    <p className="feature-item-header-subtitle">实时沟通，交流无障碍</p>
+                  </div>
+                </div>
+                <div className='feature-item-content-wrapper'>
+                  <div className="feature-item-content">
+                    <ul className="feature-item-content-left">
+                      <li>发送消息即时送达，买卖沟通畅通无阻</li>
+                      <li>接收消息及时提醒，重要信息不再错过</li>
+                      <li>查看消息记录清晰，聊天历史随时回溯</li>
+                    </ul>
+                    <div className="feature-item-content-right">
+                      <Image
+                        src={FeatureImage}
+                        preview={false}
+                        className='feature-item-content-right-item'
+                        style={{
+                          top: '-30px',
+                          left: '40px'
+                        }}
+                      />
+                      <Image
+                        src={FeatureImage}
+                        preview={false}
+                        className='feature-item-content-right-item'
+                        style={{
+                          top: '-25px',
+                          left: '50px',
+
+                        }}
+                      />
+                      <Image
+                        src={FeatureImage}
+                        preview={false}
+                        className='feature-item-content-right-item'
+                        style={{
+                          left: '60px',
+                          top: '-20px'
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <Image
+                    src={FeatureIcon05}
+                    preview={false}
+                    className='feature-item-placeholder' />
+                </div>
+              </div>
+              <div className="feature-item" ref={Card4Ref}>
+                <div className="feature-item-header feature-right">
+                  <Image
+                    src={FeatureIcon04}
+                    preview={false}
+                    className='feature-item-header-img' />
+                  <div className="feature-item-header-title">
+                    评价反馈
+                    <p className="feature-item-header-subtitle">信用为本，共建诚信社区</p>
+                  </div>
+                </div>
+                <div className='feature-item-content-wrapper feature-right'>
+                  <div className="feature-item-content feature-right">
+                    <ul className="feature-item-content-left">
+                      <li>发布评价真实客观，交易体验如实记录</li>
+                      <li>查看评价参考借鉴，卖家信誉一目了然</li>
+                      <li>举报投诉快速响应，维权渠道畅通有效</li>
+                    </ul>
+                    <div className="feature-item-content-right">
+                      <Image
+                        src={FeatureImage}
+                        preview={false}
+                        className='feature-item-content-right-item'
+                        style={{
+                          top: '-20px',
+                          right: '70px',
+
+                        }}
+                      />
+                      <Image
+                        src={FeatureImage}
+                        preview={false}
+                        className='feature-item-content-right-item'
+                        style={{
+                          top: '-15px',
+                          right: '60px',
+
+                        }}
+                      />
+                      <Image
+                        src={FeatureImage}
+                        preview={false}
+                        className='feature-item-content-right-item'
+                        style={{
+                          right: '50px',
+                          top: '-10px',
+
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section
+            className='spark'>
+            <div
+              className='spark-container'>
+              <div className='spark-background'>
+                <svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 434 313" fill="none">
+                  <path d="M4.60263 257.647L0.454102 267.431C101.348 346.683 154.704 318.896 154.704 195.039C154.704 76.5758 214.489 63.0246 337.707 155.109C378.936 184.344 407.744 185.921 423.11 158.71C437.967 132.401 435.509 80.2313 424.029 0.0131984L423.025 0.0126953C434.314 78.9027 432.816 130.892 418.849 155.626C405.391 179.458 379.579 178.046 340.443 150.295C214.446 56.1323 149.645 70.8198 149.645 195.039C149.645 313.864 102.393 334.464 4.60135 257.647H4.60263Z" fill="url(#paint0_linear_590_214)" />
+                  <defs>
+                    <linearGradient id="paint0_linear_590_214" x1="435.587" y1="153.849" x2="1.71855" y2="153.849" gradientUnits="userSpaceOnUse">
+                      <stop stop-color="#4375A5" />
+                      <stop offset="1" stop-color="white" stop-opacity="0" />
+                    </linearGradient>
+                  </defs>
                 </svg>
-                <div className="home-figure-box home-figure-box-01"></div>
-                <div className="home-figure-box home-figure-box-02"></div>
-                <div className="home-figure-box home-figure-box-03"></div>
-                <div className="home-figure-box home-figure-box-04"></div>
-                <div className="home-figure-box home-figure-box-05"></div>
-                <div className="home-figure-box home-figure-box-06"></div>
-                <div className="home-figure-box home-figure-box-07"></div>
-                <div className="home-figure-box home-figure-box-08"></div>
-                <div className="home-figure-box home-figure-box-09"></div>
-                <div className="home-figure-box home-figure-box-10"></div>
-                <div className="home-figure-box home-figure-box-routes">
-                  <a
-                    onClick={() => navigate('abnormal-detection/log')}
-                    className="home-figure-box-route">
-                    （商品管理子系统）
-                  </a>
-                  <a
-                    onClick={() => navigate('system-repair/solution')}
-                    className="home-figure-box-route">
-                    （消息通讯子系统）
-                  </a>
-                  <a
-                    onClick={() => navigate('kylin-ai')}
-                    className="home-figure-box-route">
-                    （评价反馈子系统）
-                  </a>
+              </div>
+              <div className='spark-img'>
+                <div >
+                  <Image
+                    className='spark-img-item spark-img-item-1'
+                    src={FeatureImage}
+                    preview={false}
+
+                  />
                 </div>
-              </div>
-            </div>
-          </div>
-        </section>
-        <section className="feature">
-          <div className="feature-container">
-            <div className="feature-item" style={{ opacity: 1 }}>
-              <div className="feature-item-header">
-                <Image
-                  src={FeatureIcon01}
-                  preview={false}
-                  className='feature-item-header-img' />
-                <div className="feature-item-header-title">
-                  商品浏览发布
-                  <p className="feature-item-header-subtitle">一键发布，买卖尽在掌握</p>
+                <div >
+                  <Image
+                    className='spark-img-item spark-img-item-2'
+                    src={FeatureImage}
+                    preview={false}
+
+                  />
                 </div>
-              </div>
-              <div className='feature-item-content-wrapper'>
-                <div className="feature-item-content">
-                  <ul className="feature-item-content-left">
-                    <li>丰富商品分类，心仪好物一目了然</li>
-                    <li>智能搜索推荐，优质商品直观呈现</li>
-                    <li>快速发布流程，闲置物品轻松上架</li>
-                  </ul>
-                  <div className="feature-item-content-right">
-                    <Image
-                      src={FeatureImage}
-                      preview={false}
-                      className='feature-item-content-right-item'
-                      style={{
-                        top: '-30px',
-                        left: '40px'
-                      }}
-                    />
-                    <Image
-                      src={FeatureImage}
-                      preview={false}
-                      className='feature-item-content-right-item'
-                      style={{
-                        top: '-25px',
-                        left: '50px',
+                <div >
+                  <Image
+                    className='spark-img-item spark-img-item-3'
+                    src={FeatureImage}
+                    preview={false}
 
-                      }}
-                    />
-                    <Image
-                      src={FeatureImage}
-                      preview={false}
-                      className='feature-item-content-right-item'
-                      style={{
-                        left: '60px',
-                        top: '-20px'
-                      }}
-                    />
-                  </div>
+                  />
                 </div>
-              </div>
-            </div>
-            <div className="feature-item" ref={Card2Ref}>
-              <div className="feature-item-header feature-right">
-                <Image
-
-                  src={FeatureIcon02}
-                  preview={false}
-                  className='feature-item-header-img' />
-                <div className="feature-item-header-title">
-                  交易安全保障
-                  <p className="feature-item-header-subtitle">明码标价，守护交易安全</p>
-                </div>
-              </div>
-              <div className='feature-item-content-wrapper feature-right'>
-                <div className="feature-item-content feature-right">
-                  <ul className="feature-item-content-left">
-                    <li>实名认证机制，买卖双方信息可查</li>
-                    <li>交易记录留存，历史订单清晰可见</li>
-                    <li>评价反馈系统，用户口碑真实呈现</li>
-                  </ul>
-                  <div className="feature-item-content-right">
-                    <Image
-                      src={FeatureImage}
-                      preview={false}
-                      className='feature-item-content-right-item'
-                      style={{
-                        top: '-20px',
-                        right: '70px',
-
-                      }}
-                    />
-                    <Image
-                      src={FeatureImage}
-                      preview={false}
-                      className='feature-item-content-right-item'
-                      style={{
-                        top: '-15px',
-                        right: '60px',
-
-                      }}
-                    />
-                    <Image
-                      src={FeatureImage}
-                      preview={false}
-                      className='feature-item-content-right-item'
-                      style={{
-                        right: '50px',
-                        top: '-10px',
-
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="feature-item" ref={Card3Ref}>
-              <div className="feature-item-header">
-                <Image
-                  src={FeatureIcon03}
-                  preview={false}
-                  className='feature-item-header-img' />
-                <div className="feature-item-header-title">
-                  订单管理中心
-                  <p className="feature-item-header-subtitle">
-                    记录完整，交易流程清晰</p>
-                </div>
-              </div>
-              <div className='feature-item-content-wrapper'>
-                <div className="feature-item-content">
-                  <ul className="feature-item-content-left">
-                    <li>订单状态跟踪，交易进度随时可查</li>
-                    <li>历史订单管理，交易记录触手可及</li>
-                    <li>交易凭证导出，PDF格式规范留存</li>
-                  </ul>
-                  <div className="feature-item-content-right">
-                    <Image
-                      src={FeatureImage}
-                      preview={false}
-                      className='feature-item-content-right-item'
-                      style={{
-                        top: '-30px',
-                        left: '40px'
-                      }}
-                    />
-                    <Image
-                      src={FeatureImage}
-                      preview={false}
-                      className='feature-item-content-right-item'
-                      style={{
-                        top: '-25px',
-                        left: '50px',
-
-                      }}
-                    />
-                    <Image
-                      src={FeatureImage}
-                      preview={false}
-                      className='feature-item-content-right-item'
-                      style={{
-                        left: '60px',
-                        top: '-20px'
-                      }}
-                    />
-                  </div>
-                </div>
-                <Image
-                  src={FeatureIcon05}
-                  preview={false}
-                  className='feature-item-placeholder' />
-              </div>
-            </div>
-            <div className="feature-item" ref={Card4Ref}>
-              <div className="feature-item-header feature-right">
-                <Image
-                  src={FeatureIcon04}
-                  preview={false}
-                  className='feature-item-header-img' />
-                <div className="feature-item-header-title">
-                  AI 智能助手
-                  <p className="feature-item-header-subtitle">问答无忧，在线解答疑问</p>
-                </div>
-              </div>
-              <div className='feature-item-content-wrapper feature-right'>
-                <div className="feature-item-content feature-right">
-                  <ul className="feature-item-content-left">
-                    <li>智能问答交互，交易疑问即问即答</li>
-                    <li>自动推荐商品，匹配需求精准高效</li>
-                    <li>价格评估建议，AI分析专业可靠</li>
-                  </ul>
-                  <div className="feature-item-content-right">
-                    <Image
-                      src={FeatureImage}
-                      preview={false}
-                      className='feature-item-content-right-item'
-                      style={{
-                        top: '-20px',
-                        right: '70px',
-
-                      }}
-                    />
-                    <Image
-                      src={FeatureImage}
-                      preview={false}
-                      className='feature-item-content-right-item'
-                      style={{
-                        top: '-15px',
-                        right: '60px',
-
-                      }}
-                    />
-                    <Image
-                      src={FeatureImage}
-                      preview={false}
-                      className='feature-item-content-right-item'
-                      style={{
-                        right: '50px',
-                        top: '-10px',
-
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-        <section
-          className='spark'>
-          <div
-            className='spark-container'>
-            <div className='spark-background'>
-              <svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 434 313" fill="none">
-                <path d="M4.60263 257.647L0.454102 267.431C101.348 346.683 154.704 318.896 154.704 195.039C154.704 76.5758 214.489 63.0246 337.707 155.109C378.936 184.344 407.744 185.921 423.11 158.71C437.967 132.401 435.509 80.2313 424.029 0.0131984L423.025 0.0126953C434.314 78.9027 432.816 130.892 418.849 155.626C405.391 179.458 379.579 178.046 340.443 150.295C214.446 56.1323 149.645 70.8198 149.645 195.039C149.645 313.864 102.393 334.464 4.60135 257.647H4.60263Z" fill="url(#paint0_linear_590_214)" />
-                <defs>
-                  <linearGradient id="paint0_linear_590_214" x1="435.587" y1="153.849" x2="1.71855" y2="153.849" gradientUnits="userSpaceOnUse">
-                    <stop stop-color="#4375A5" />
-                    <stop offset="1" stop-color="white" stop-opacity="0" />
-                  </linearGradient>
-                </defs>
-              </svg>
-            </div>
-            <div className='spark-img'>
-              <div >
-                <Image
-                  className='spark-img-item spark-img-item-1'
-                  src={FeatureImage}
-                  preview={false}
-
-                />
-              </div>
-              <div >
-                <Image
-                  className='spark-img-item spark-img-item-2'
-                  src={FeatureImage}
-                  preview={false}
-
-                />
-              </div>
-              <div >
-                <Image
-                  className='spark-img-item spark-img-item-3'
-                  src={FeatureImage}
-                  preview={false}
-                />
-              </div>
-              <div
-                ref={sparkRef}
-                className='spark-img-info'>
-                Trade Made Easy By Campus
-                <div className="spark-img-info-text-highlight">
+                <div
+                  ref={sparkRef}
+                  className='spark-img-info'>
+                  Campus-Trading
                   {
                     sparkStart && <TypeWriter
                       className='spark-img-info-text'
-                      text={[{ text: '校园易物，连接你我他', className: 'spark-img-info-text-highlight' }]}
+                      text={[{ text: '校园易物，让闲置流转更智能', className: 'spark-img-info-text-highlight' }]}
                     />
                   }
                 </div>
               </div>
             </div>
+          </section>
+        </main>
+        <footer className='home-footer'>
+          <div className='home-footer-left'>
+            <div className='home-footer-line' />
+            <div className='home-footer-copyright'>
+              © 2025 CampusTrading, all rights reserved
+            </div>
           </div>
-        </section>
-      </main>
-      <footer className='home-footer'>
-        <div className='home-footer-left'>
-          <div className='home-footer-line' />
-          <div className='home-footer-copyright'>
-            © 2025 校园易物, all rights reserved
+          <div className='home-footer-right'>
+            <div className='home-footer-options'>
+              <div className='home-footer-option'>Contact</div>
+              <div className='home-footer-option'>About us</div>
+              <div className='home-footer-option'>FAQ's</div>
+              <div className='home-footer-option'>Thanks</div>
+            </div>
+            <div className='home-footer-line' />
           </div>
-        </div>
-        <div className='home-footer-right'>
-          <div className='home-footer-options'>
-            <div className='home-footer-option'>Contact</div>
-            <div className='home-footer-option'>About us</div>
-            <div className='home-footer-option'>FAQ's</div>
-            <div className='home-footer-option'>Thanks</div>
-          </div>
-          <div className='home-footer-line' />
-        </div>
-      </footer>
-    </div>
+        </footer>
+      </SystemLayoutNoBackground>
+    </>
   )
 }
-
 export default Home;

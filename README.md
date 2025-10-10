@@ -1,73 +1,26 @@
-# React + TypeScript + Vite
+# 项目启动说明
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+本项目使用 React 框架，typescript 作为主要开发语言，less 作为 css 框架，pnpm 作为包管理工具。以下是启动项目的步骤，具体的步骤可以去网上搜索（pnpm 安装），也可以问 AI：
 
-Currently, two official plugins are available:
+1. 安装 node.js，配置环境变量等一系列操作后，输入 `node -v` 和 `npm -v` 检查安装情况
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+2. 输入 `npm install -g pnpm` 安装 pnpm 包管理工具，终端输入 `pnpm -v` 检查安装情况
 
-## React Compiler
+3. 项目根目录下输入 `pnpm install` 一键安装项目依赖
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+4. 最后输入 `pnpm run dev` 启动开发服务器
 
-## Expanding the ESLint configuration
+# 项目结构说明
+项目根目录结构为：
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+\ assets: 存放静态资源（矢量图标和图片等）
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+\ components: 存放大型业务组件或项目通用组件
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+\ hooks: 存放逻辑处理规则
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+\ service: 接口层
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+\ utils: 存放项目通用工具函数
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+\ views: 存放页面级组件，主要在此编写代码

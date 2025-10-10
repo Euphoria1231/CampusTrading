@@ -55,8 +55,7 @@ const TypeWriter: FC<{
           }
 
           return (
-            <span key={index} className={segmentClass}>
-              {segmentText}
+            <span key={index} className={segmentClass} dangerouslySetInnerHTML={{ __html: segmentText }}>
             </span>
           );
         })}

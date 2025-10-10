@@ -21,6 +21,7 @@
       width: 0;
       height: 0;
       transition: all 0.2s;
+
       // 当hover任何子元素时，所有元素先变透明
       &:hover .spark-img-item {
         opacity: 0.2;
@@ -81,25 +82,26 @@
         position: absolute;
         top: 350px;
         left: 830px;
-        color: #FFF;
+        color: #333;
         font-size: 18px;
         font-weight: 700;
         text-align: center;
         pointer-events: none;
+
         &-text {
           font-size: 24px;
           font-weight: 700;
           width: 500px;
 
           &-highlight {
-            width: 500px;
-            font-size: 24px;
             background: linear-gradient(90deg, #6C67FF 0%, #973E99 100%);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
           }
         }
+
+
       }
     }
   }
