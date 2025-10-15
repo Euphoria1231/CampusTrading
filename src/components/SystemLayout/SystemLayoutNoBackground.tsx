@@ -29,6 +29,7 @@ const SystemLayoutNoBackground: FC<SystemLayoutProps> = ({ children, onScroll })
             首页
           </div>
           <div
+            onClick={() => navigate('/user')}
             className="system-header-nav-item">
             <span>登录/注册（登陆后变为个人中心）</span>
             <Image className='system-header-nav-item-avatar' src={avatar} preview={false} />
