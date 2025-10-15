@@ -14,7 +14,12 @@ function App() {
         <Routes>
           <Route element={<Home />} path="*" />
           <Route element={<TradeManage />} path="trade-manage" />
+          {/* 用户相关路由 */}
           <Route element={<User />} path="user" />
+          <Route element={<User />} path="/user/register" />
+          <Route path="/user/forgot-password" element={<User />} />
+          <Route path="/user/profile" element={<User />} />
+          
           <Route element={<Feedback />} path="feedback" />
           <Route element={<Connection />} path="connection" />
           <Route element={<Goods />} path="goods"/>
