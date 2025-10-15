@@ -14,6 +14,7 @@ function App() {
         <Routes>
           <Route element={<Home />} path="*" />
           <Route element={<TradeManage />} path="trade-manage" />
+          <Route element={<TradeManage />} path="trade-manage/detail/:id" /> 添加这一行
           <Route element={<User />} path="user" />
           <Route element={<Feedback />} path="feedback" />
           <Route element={<Connection />} path="connection" />
