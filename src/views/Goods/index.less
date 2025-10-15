@@ -1,0 +1,60 @@
+.goods-container {
+  padding: 24px;
+  background: #f5f5f5;
+  min-height: 100vh;
+
+  .goods-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding: 16px 24px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    h1 {
+      margin: 0;
+      color: #1890ff;
+      font-size: 24px;
+      font-weight: 600;
+    }
+  }
+
+  .ant-card {
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    .ant-table {
+      .ant-table-thead > tr > th {
+        background: #fafafa;
+        font-weight: 600;
+      }
+
+      .ant-table-tbody > tr:hover > td {
+        background: #f5f5f5;
+      }
+    }
+  }
+
+  .ant-modal {
+    .ant-modal-header {
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .ant-form-item-label > label {
+      font-weight: 600;
+    }
+
+    .ant-input,
+    .ant-input-number,
+    .ant-select-selector {
+      border-radius: 6px;
+    }
+
+    .ant-btn {
+      border-radius: 6px;
+      font-weight: 500;
+    }
+  }
+}
