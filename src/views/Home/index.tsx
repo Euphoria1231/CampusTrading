@@ -248,7 +248,7 @@ const Home: FC = () => {
                   <div className="home-figure-box home-figure-box-10"></div>
                   <div className="home-figure-box home-figure-box-routes">
                     <a
-                      onClick={() => navigate('goods')}
+                      onClick={() => navigate('goods-browse')}
                       className="home-figure-box-route">
                       商品管理
                     </a>
