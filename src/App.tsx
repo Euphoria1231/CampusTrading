@@ -5,7 +5,10 @@ import TradeManage from "./views/TradeManage"
 import User from "./views/User"
 import Feedback from "./views/Feedback"
 import Connection from "./views/Connection"
-import Goods from "./views/Goods"
+import GoodsBrowse from "./views/GoodsBrowse"
+import GoodsCreate from "./views/GoodsCreate"
+import GoodsEdit from "./views/GoodsEdit"
+import GoodsDetail from "./views/GoodsDetail"
 function App() {
 
   return (
@@ -24,7 +27,10 @@ function App() {
           
           <Route element={<Feedback />} path="feedback" />
           <Route element={<Connection />} path="connection" />
-          <Route element={<Goods />} path="goods"/>
+          <Route element={<GoodsBrowse />} path="goods-browse" />
+          <Route element={<GoodsCreate />} path="goods-create" />
+          <Route element={<GoodsEdit />} path="goods-edit/:id" />
+          <Route element={<GoodsDetail />} path="goods-detail/:id" />
         </Routes>
       </HashRouter>
     </>
