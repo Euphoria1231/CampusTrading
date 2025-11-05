@@ -53,7 +53,7 @@ const User: FC = () => {
   const [forgotPasswordForm] = Form.useForm()
   const [profileForm] = Form.useForm()
   const [userInfo, setUserInfo] = useState<any>(null)
-  
+
   // 模拟用户数据
   const [userProfile, setUserProfile] = useState<UserProfile>({
     userId: 1,
@@ -88,14 +88,14 @@ const User: FC = () => {
   const handleLogin = async (values: LoginForm) => {
     try {
       console.log('登录参数:', values)
-      
+
       // 模拟登录验证
       if (values.username === 'banneduser') {
         setUserProfile(prev => ({ ...prev, creditScore: 50 }))
         message.error('账号已被封禁，请联系管理员')
         return
       }
-      
+
       message.success('登录成功！')
       // 登录成功后跳转到个人中心
       navigate('/user/profile')
@@ -118,10 +118,10 @@ const User: FC = () => {
   const handleVerifyUser = async (values: any) => {
     try {
       console.log('验证用户信息:', values)
-      
+
       // 模拟验证用户信息
       const isValid = await verifyUserInfo(values)
-      
+
       if (isValid) {
         setUserInfo(values)
         setCurrentStep(1)
@@ -141,9 +141,9 @@ const User: FC = () => {
         ...userInfo,
         newPassword: values.newPassword
       })
-      
+
       message.success('密码重置成功！')
-      
+
       // 重置状态并返回登录页
       setCurrentStep(0)
       setUserInfo(null)
@@ -179,12 +179,12 @@ const User: FC = () => {
   const handleSaveProfile = async (values: any) => {
     try {
       console.log('保存个人信息:', values)
-      
+
       const updatedProfile = {
         ...userProfile,
         ...values
       }
-      
+
       setUserProfile(updatedProfile)
       setIsEditing(false)
       message.success('个人信息更新成功！')
@@ -233,13 +233,13 @@ const User: FC = () => {
     return (
       <SystemLayoutNoBackground>
         <div className="user-profile-container">
-          <Card 
-            title="个人中心" 
+          <Card
+            title="个人中心"
             className="profile-card"
             extra={
               !isEditing && !isUserBanned ? (
-                <Button 
-                  type="primary" 
+                <Button
+                  type="primary"
                   icon={<EditOutlined />}
                   onClick={handleEditProfile}
                 >
@@ -263,9 +263,9 @@ const User: FC = () => {
               // 查看模式
               <div className="profile-view">
                 <div className="profile-header">
-                  <Avatar 
-                    size={80} 
-                    icon={<UserOutlined />} 
+                  <Avatar
+                    size={80}
+                    icon={<UserOutlined />}
                     src={userProfile.avatarUrl}
                     className="profile-avatar"
                   />
@@ -302,8 +302,8 @@ const User: FC = () => {
                 </Descriptions>
 
                 <div className="profile-actions">
-                  <Button 
-                    type="primary" 
+                  <Button
+                    type="primary"
                     onClick={() => navigate('/user/change-password')}
                     className="change-password-btn"
                     disabled={isUserBanned}
@@ -336,9 +336,9 @@ const User: FC = () => {
                         { min: 3, message: '用户名至少3个字符!' }
                       ]}
                     >
-                      <Input 
-                        prefix={<UserOutlined />} 
-                        placeholder="用户名" 
+                      <Input
+                        prefix={<UserOutlined />}
+                        placeholder="用户名"
                         disabled
                       />
                     </Form.Item>
@@ -440,7 +440,7 @@ const User: FC = () => {
               ]}
               className="forgot-password-steps"
             />
-            
+
             {currentStep === 0 ? (
               <Form
                 form={forgotPasswordForm}
@@ -451,7 +451,7 @@ const User: FC = () => {
                 layout="vertical"
               >
                 <div className="form-section-title">请填写以下信息验证身份</div>
-                
+
                 <Form.Item
                   name="username"
                   label="用户名"
@@ -460,9 +460,9 @@ const User: FC = () => {
                     { min: 3, message: '用户名至少3个字符!' }
                   ]}
                 >
-                  <Input 
-                    prefix={<UserOutlined />} 
-                    placeholder="请输入您的用户名" 
+                  <Input
+                    prefix={<UserOutlined />}
+                    placeholder="请输入您的用户名"
                   />
                 </Form.Item>
 
@@ -524,7 +524,7 @@ const User: FC = () => {
                 initialValues={userInfo}
               >
                 <div className="form-section-title">请设置您的新密码</div>
-                
+
                 <div className="user-info-display">
                   <p><strong>用户名:</strong> {userInfo?.username}</p>
                   <p><strong>姓名:</strong> {userInfo?.realName}</p>
@@ -605,9 +605,9 @@ const User: FC = () => {
                   { max: 20, message: '用户名最多20个字符!' }
                 ]}
               >
-                <Input 
-                  prefix={<UserOutlined />} 
-                  placeholder="用户名" 
+                <Input
+                  prefix={<UserOutlined />}
+                  placeholder="用户名"
                 />
               </Form.Item>
 
@@ -726,9 +726,9 @@ const User: FC = () => {
                 { min: 3, message: '用户名至少3个字符!' }
               ]}
             >
-              <Input 
-                prefix={<UserOutlined />} 
-                placeholder="用户名" 
+              <Input
+                prefix={<UserOutlined />}
+                placeholder="用户名"
               />
             </Form.Item>
 

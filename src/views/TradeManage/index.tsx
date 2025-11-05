@@ -80,15 +80,15 @@ const getTrades = async (params?: {
     pageSize: params?.limit,
     status: params?.status === "ALL" ? undefined : params?.status
   };
-  
-  const res = await axios.get(`${API_BASE}/trades`, { 
-    params: requestParams 
+
+  const res = await axios.get(`${API_BASE}/trades`, {
+    params: requestParams
   });
-  
+
   // 处理后端返回的 PageResult 结构
   const pageResult: PageResult = res.data.data;
   const trades = (pageResult.records || []).map(convertTrade);
-  
+
   return {
     trades,
     total: pageResult.total
@@ -204,17 +204,17 @@ const TradeListPage: FC = () => {
           <div className="empty">暂无交易记录</div>
         )}
       </div>
-      
+
       {/* 分页控件 */}
       <div className="pagination">
-        <button 
+        <button
           disabled={currentPage <= 1}
           onClick={() => handlePageChange(currentPage - 1)}
         >
           上一页
         </button>
         <span>第 {currentPage} 页 (共 {Math.ceil(total / pageSize)} 页)</span>
-        <button 
+        <button
           disabled={trades.length < pageSize}
           onClick={() => handlePageChange(currentPage + 1)}
         >
@@ -238,7 +238,7 @@ const TradeDetailPage: FC<{ id: string }> = ({ id }) => {
     }
 
     console.log("🔍 TradeDetailPage 开始加载，ID:", id);
-    
+
     const fetchData = async () => {
       try {
         const data = await getTradeById(Number(id));
@@ -329,14 +329,14 @@ const TradeDetailPage: FC<{ id: string }> = ({ id }) => {
 const TradeManage: FC = () => {
   const location = useLocation();
   const { id } = useParams<{ id?: string }>();
-  
+
   console.log("=== 🚀 TradeManage 路由调试 ===");
   console.log("📍 location.pathname:", location.pathname);
   console.log("🎯 useParams id:", id);
-  
+
   const match = location.pathname.match(/\/trade-manage\/detail\/(\d+)/);
   console.log("🔍 正则匹配结果:", match);
-  
+
   // 优先使用 useParams，如果为空则使用正则匹配的结果
   const finalId = id || (match ? match[1] : null);
   console.log("✅ 最终使用的 ID:", finalId);

@@ -50,10 +50,10 @@ const Goods: FC = () => {
   // 创建或更新商品
   const handleSubmit = async (values: Goods) => {
     try {
-      const url = editingGoods 
+      const url = editingGoods
         ? `http://localhost:8081/api/goods/update`
         : `http://localhost:8081/api/goods/create`
-      
+
       const response = await fetch(url, {
         method: editingGoods ? 'PUT' : 'POST',
         headers: {
@@ -65,7 +65,7 @@ const Goods: FC = () => {
           sellerId: 1 // 模拟卖家ID
         }),
       })
-      
+
       const result = await response.json()
       if (result.code === 200) {
         message.success(editingGoods ? '商品更新成功' : '商品创建成功')
@@ -87,7 +87,7 @@ const Goods: FC = () => {
       const response = await fetch(`http://localhost:8081/api/goods/${id}`, {
         method: 'DELETE',
       })
-      
+
       const result = await response.json()
       if (result.code === 200) {
         message.success('商品删除成功')
