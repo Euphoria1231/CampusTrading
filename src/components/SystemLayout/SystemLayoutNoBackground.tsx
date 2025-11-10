@@ -29,11 +29,21 @@ const SystemLayoutNoBackground: FC<SystemLayoutProps> = ({ children, onScroll })
             首页
           </div>
           <div
-            onClick={() => navigate('/user')}
-            className="system-header-nav-item">
-            <span>登录/注册（登陆后变为个人中心）</span>
-            <Image className='system-header-nav-item-avatar' src={avatar} preview={false} />
-          </div>
+          onClick={() => {
+            const token = localStorage.getItem('token');
+            if (token) {
+              // 已登录，跳转到个人中心
+              navigate('/user/profile');
+            } else {
+              // 未登录，跳转到登录页面
+              navigate('/user');
+            }
+          }}
+          className="system-header-nav-item"
+        >
+          <span>{localStorage.getItem('token') ? '个人中心' : '登录/注册'}</span>
+          <Image className='system-header-nav-item-avatar' src={avatar} preview={false} />
+        </div>
           <div className="system-header-nav-item">
             <ToggleStyleContainer />
           </div>

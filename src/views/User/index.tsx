@@ -1,9 +1,10 @@
 import SystemLayoutNoBackground from "@/components/SystemLayout/SystemLayoutNoBackground"
 import type { FC } from "react"
-import { Form, Input, Button, Card, message, Avatar, Descriptions, Tag, Divider, Alert, Steps } from "antd"
+import { Form, Input, Button, Card, message, Avatar, Descriptions, Tag, Divider, Alert, Steps, notification } from "antd"
 import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined, IdcardOutlined, EditOutlined, SaveOutlined, CloseOutlined, ExclamationCircleOutlined } from "@ant-design/icons"
 import { useNavigate, useLocation } from "react-router-dom"
 import { useEffect, useState } from "react"
+import { http } from "@/utils/request" // 导入封装的http方法
 import './index.less'
 
 interface LoginForm {
@@ -40,6 +41,7 @@ interface UserProfile {
   schoolId: string
   creditScore: number
   created_at: string
+  token?: string
 }
 
 const User: FC = () => {
@@ -53,120 +55,170 @@ const User: FC = () => {
   const [forgotPasswordForm] = Form.useForm()
   const [profileForm] = Form.useForm()
   const [userInfo, setUserInfo] = useState<any>(null)
+  const [loading, setLoading] = useState(false)
   
-  // 模拟用户数据
-  const [userProfile, setUserProfile] = useState<UserProfile>({
-    userId: 1,
-    username: 'zhangsan',
-    email: 'zhangsan@example.com',
-    phoneNumber: '13800138001',
-    realName: '张三',
-    schoolId: '2024001001',
-    creditScore: 95,
-    created_at: '2024-01-01 10:00:00'
-  })
+  // 用户数据
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
 
   // 信用分阈值 - 低于60分被封禁
   const BANNED_CREDIT_SCORE = 60
 
   // 根据路由判断当前页面
   useEffect(() => {
+    console.log('路由变化:', location.pathname)
+    console.log('当前token:', localStorage.getItem('token'))
+    
     if (location.pathname === '/user/register') {
       setCurrentPage('register')
     } else if (location.pathname === '/user/forgot-password') {
       setCurrentPage('forgotPassword')
     } else if (location.pathname === '/user/profile') {
+      // 进入个人中心时检查token
+      const token = localStorage.getItem('token')
+      if (!token) {
+        console.warn('未找到token，跳转到登录页')
+        message.error('请先登录')
+        navigate('/user')
+        return
+      }
       setCurrentPage('profile')
+      // 获取用户信息
+      fetchUserProfile()
     } else {
       setCurrentPage('login')
     }
   }, [location.pathname])
 
   // 检查用户是否被封禁
-  const isUserBanned = userProfile.creditScore < BANNED_CREDIT_SCORE
+  const isUserBanned = userProfile?.creditScore ? userProfile.creditScore < BANNED_CREDIT_SCORE : false
 
+  // 登录API调用
   const handleLogin = async (values: LoginForm) => {
+    setLoading(true)
     try {
-      console.log('登录参数:', values)
+      const result = await http.post<{ code: number; message: string; data: UserProfile }>('/user/login', values)
       
-      // 模拟登录验证
-      if (values.username === 'banneduser') {
-        setUserProfile(prev => ({ ...prev, creditScore: 50 }))
-        message.error('账号已被封禁，请联系管理员')
-        return
+      if (result.code === 200) {
+        // 登录成功，确保token保存到localStorage
+        if (result.data.token) {
+          localStorage.setItem('token', result.data.token)
+          console.log('登录成功，token已保存到localStorage')
+        }
+        
+        setUserProfile(result.data)
+        // 跳转到个人中心
+        navigate('/user/profile')
+        notification.success({
+          message: '登录成功',
+          duration: 3,
+        })
+        
+        
+      } else {
+        message.error(result.message || '登录失败')
       }
-      
-      message.success('登录成功！')
-      // 登录成功后跳转到个人中心
-      navigate('/user/profile')
     } catch (error) {
-      message.error('登录失败，请检查用户名和密码')
+      console.error('登录请求失败:', error)
+      // 错误已经在拦截器中处理，这里只需记录日志
+    } finally {
+      setLoading(false)
     }
   }
 
+  // 获取用户个人资料
+  const fetchUserProfile = async () => {
+    setLoading(true)
+    try {
+      const result = await http.get<{ code: number; message: string; data: UserProfile }>('/user/profile')
+      
+      if (result.code === 200) {
+        setUserProfile(result.data)
+        console.log('用户信息获取成功')
+      } else {
+        console.error('获取用户信息失败:', result.message)
+        message.error(result.message || '获取用户信息失败')
+      }
+    } catch (error: any) {
+      console.error('获取用户信息失败:', error)
+      // 错误已经在拦截器中统一处理
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // 注册
   const handleRegister = async (values: RegisterForm) => {
+    setLoading(true)
     try {
-      console.log('注册参数:', values)
-      message.success('注册成功！')
-      navigate('/user')
+      const result = await http.post<{ code: number; message: string; data: any }>('/user/register', values)
+      
+      if (result.code === 200) {
+        message.success('注册成功！')
+        navigate('/user')
+      } else {
+        message.error(result.message || '注册失败')
+      }
     } catch (error) {
-      message.error('注册失败，请重试')
+      console.error('注册请求失败:', error)
+      // 错误已经在拦截器中处理
+    } finally {
+      setLoading(false)
     }
   }
 
-  // 第一步：验证用户信息
+  // 忘记密码 - 验证身份
   const handleVerifyUser = async (values: any) => {
+    setLoading(true)
     try {
-      console.log('验证用户信息:', values)
+      const result = await http.post<{ code: number; message: string; data: any }>('/user/verify-identity', values)
       
-      // 模拟验证用户信息
-      const isValid = await verifyUserInfo(values)
-      
-      if (isValid) {
+      if (result.code === 200) {
         setUserInfo(values)
         setCurrentStep(1)
         message.success('信息验证成功，请设置新密码')
       } else {
-        message.error('信息验证失败，请检查输入的信息是否正确')
+        message.error(result.message || '信息验证失败')
       }
     } catch (error) {
-      message.error('验证失败，请重试')
+      console.error('验证请求失败:', error)
+      // 错误已经在拦截器中处理
+    } finally {
+      setLoading(false)
     }
   }
 
-  // 第二步：设置新密码
+  // 忘记密码 - 重置密码
   const handleResetPassword = async (values: any) => {
+    setLoading(true)
     try {
-      console.log('重置密码:', {
+      const result = await http.post<{ code: number; message: string; data: any }>('/user/reset-password', {
         ...userInfo,
         newPassword: values.newPassword
       })
       
-      message.success('密码重置成功！')
-      
-      // 重置状态并返回登录页
-      setCurrentStep(0)
-      setUserInfo(null)
-      forgotPasswordForm.resetFields()
-      navigate('/user')
+      if (result.code === 200) {
+        message.success('密码重置成功！')
+        setCurrentStep(0)
+        setUserInfo(null)
+        forgotPasswordForm.resetFields()
+        navigate('/user')
+      } else {
+        message.error(result.message || '密码重置失败')
+      }
     } catch (error) {
-      message.error('密码重置失败，请重试')
+      console.error('重置密码请求失败:', error)
+      // 错误已经在拦截器中处理
+    } finally {
+      setLoading(false)
     }
-  }
-
-  // 模拟验证用户信息的函数
-  const verifyUserInfo = async (userInfo: any): Promise<boolean> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(true)
-      }, 1000)
-    })
   }
 
   // 处理编辑个人信息
   const handleEditProfile = () => {
     setIsEditing(true)
-    profileForm.setFieldsValue(userProfile)
+    if (userProfile) {
+      profileForm.setFieldsValue(userProfile)
+    }
   }
 
   // 取消编辑
@@ -177,20 +229,31 @@ const User: FC = () => {
 
   // 保存个人信息
   const handleSaveProfile = async (values: any) => {
+    setLoading(true)
     try {
-      console.log('保存个人信息:', values)
+      const result = await http.put<{ code: number; message: string; data: UserProfile }>('/user/update-profile', values)
       
-      const updatedProfile = {
-        ...userProfile,
-        ...values
+      if (result.code === 200) {
+        setUserProfile(result.data)
+        setIsEditing(false)
+        message.success('个人信息更新成功！')
+      } else {
+        message.error(result.message || '更新失败')
       }
-      
-      setUserProfile(updatedProfile)
-      setIsEditing(false)
-      message.success('个人信息更新成功！')
     } catch (error) {
-      message.error('更新失败，请重试')
+      console.error('更新个人信息失败:', error)
+      // 错误已经在拦截器中处理
+    } finally {
+      setLoading(false)
     }
+  }
+
+  // 退出登录
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    setUserProfile(null)
+    message.success('已退出登录')
+    navigate('/user')
   }
 
   const navigateToRegister = () => {
@@ -230,6 +293,20 @@ const User: FC = () => {
 
   // 个人中心页面
   if (currentPage === 'profile') {
+    if (!userProfile) {
+      return (
+        <SystemLayoutNoBackground>
+          <div className="user-profile-container">
+            <Card title="个人中心" className="profile-card">
+              <div style={{ textAlign: 'center', padding: '40px' }}>
+                <div>加载中...</div>
+              </div>
+            </Card>
+          </div>
+        </SystemLayoutNoBackground>
+      )
+    }
+
     return (
       <SystemLayoutNoBackground>
         <div className="user-profile-container">
@@ -242,6 +319,7 @@ const User: FC = () => {
                   type="primary" 
                   icon={<EditOutlined />}
                   onClick={handleEditProfile}
+                  loading={loading}
                 >
                   编辑信息
                 </Button>
@@ -304,11 +382,15 @@ const User: FC = () => {
                 <div className="profile-actions">
                   <Button 
                     type="primary" 
-                    onClick={() => navigate('/user/change-password')}
+                    onClick={() => navigate('/user/forgot-password')}
                     className="change-password-btn"
                     disabled={isUserBanned}
+                    loading={loading}
                   >
                     修改密码
+                  </Button>
+                  <Button onClick={handleLogout} loading={loading}>
+                    退出登录
                   </Button>
                   <Button onClick={() => navigate('/')}>
                     返回首页
@@ -331,10 +413,6 @@ const User: FC = () => {
                     <Form.Item
                       name="username"
                       label="用户名"
-                      rules={[
-                        { required: true, message: '请输入用户名!' },
-                        { min: 3, message: '用户名至少3个字符!' }
-                      ]}
                     >
                       <Input 
                         prefix={<UserOutlined />} 
@@ -360,9 +438,6 @@ const User: FC = () => {
                     <Form.Item
                       name="schoolId"
                       label="学号"
-                      rules={[
-                        { required: true, message: '请输入学号!' }
-                      ]}
                     >
                       <Input
                         prefix={<IdcardOutlined />}
@@ -406,10 +481,10 @@ const User: FC = () => {
                   </div>
 
                   <div className="edit-actions">
-                    <Button onClick={handleCancelEdit} icon={<CloseOutlined />}>
+                    <Button onClick={handleCancelEdit} icon={<CloseOutlined />} loading={loading}>
                       取消
                     </Button>
-                    <Button type="primary" htmlType="submit" icon={<SaveOutlined />}>
+                    <Button type="primary" htmlType="submit" icon={<SaveOutlined />} loading={loading}>
                       保存
                     </Button>
                   </div>
@@ -508,7 +583,7 @@ const User: FC = () => {
                 </Form.Item>
 
                 <Form.Item>
-                  <Button type="primary" htmlType="submit" className="verify-button">
+                  <Button type="primary" htmlType="submit" className="verify-button" loading={loading}>
                     验证身份
                   </Button>
                 </Form.Item>
@@ -561,10 +636,10 @@ const User: FC = () => {
 
                 <Form.Item>
                   <div className="reset-password-actions">
-                    <Button onClick={() => setCurrentStep(0)} className="back-button">
+                    <Button onClick={() => setCurrentStep(0)} className="back-button" loading={loading}>
                       上一步
                     </Button>
-                    <Button type="primary" htmlType="submit" className="reset-button">
+                    <Button type="primary" htmlType="submit" className="reset-button" loading={loading}>
                       确认修改
                     </Button>
                   </div>
@@ -690,7 +765,7 @@ const User: FC = () => {
               </Form.Item>
 
               <Form.Item>
-                <Button type="primary" htmlType="submit" className="register-button">
+                <Button type="primary" htmlType="submit" className="register-button" loading={loading}>
                   注册
                 </Button>
               </Form.Item>
@@ -746,7 +821,7 @@ const User: FC = () => {
             </Form.Item>
 
             <Form.Item>
-              <Button type="primary" htmlType="submit" className="login-button">
+              <Button type="primary" htmlType="submit" className="login-button" loading={loading}>
                 登录
               </Button>
             </Form.Item>
