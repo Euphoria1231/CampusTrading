@@ -5,6 +5,7 @@ import type { FC } from "react"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import type { UploadFile, UploadProps } from 'antd'
+import { http } from "@/utils/request"
 import './index.less'
 
 const { Title, Text } = Typography
@@ -28,6 +29,7 @@ interface GoodsForm {
 const GoodsCreate: FC = () => {
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
+  const [submitting, setSubmitting] = useState(false) // 防止重复提交
   const [fileList, setFileList] = useState<UploadFile[]>([])
   const navigate = useNavigate()
 
@@ -80,13 +82,20 @@ const GoodsCreate: FC = () => {
 
   // 提交表单
   const handleSubmit = async (values: GoodsForm) => {
+    // 防止重复提交
+    if (submitting) {
+      console.log('正在提交中，请勿重复操作')
+      return
+    }
+    
     setLoading(true)
+    setSubmitting(true)
     try {
       // 检查图片URL，如果是blob URL则清空
+      // sellerId将由后端从token中自动获取
       const submitData = {
         ...values,
-        imageUrl: values.imageUrl?.startsWith('blob:') ? '' : values.imageUrl,
-        sellerId: 1 // 模拟卖家ID
+        imageUrl: values.imageUrl?.startsWith('blob:') ? '' : values.imageUrl
       }
       
       // 如果用户上传了本地图片但没有提供URL，给出提示
@@ -94,15 +103,8 @@ const GoodsCreate: FC = () => {
         message.warning('检测到您上传了本地图片，但未提供图片URL。请使用图床服务（如imgur、七牛云等）获取图片URL，或留空使用默认图片。')
       }
       
-      const response = await fetch('http://localhost:8081/api/goods/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(submitData),
-      })
+      const result = await http.post<{ code: number; message: string }>('/goods/create', submitData)
       
-      const result = await response.json()
       if (result.code === 200) {
         message.success('商品创建成功')
         navigate('/goods-browse')
@@ -111,8 +113,10 @@ const GoodsCreate: FC = () => {
       }
     } catch (error) {
       message.error('创建失败')
+      setSubmitting(false) // 失败时重置状态，允许重试
     } finally {
       setLoading(false)
+      // 成功时不重置submitting，因为会跳转页面
     }
   }
 

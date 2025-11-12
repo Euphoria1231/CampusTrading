@@ -4,6 +4,7 @@ import { EditOutlined, DeleteOutlined, PlusOutlined, EyeOutlined, SearchOutlined
 import type { FC } from "react"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { http } from "@/utils/request"
 import './index.less'
 
 interface Goods {
@@ -58,8 +59,7 @@ const GoodsBrowse: FC = () => {
   const fetchGoodsList = async () => {
     setLoading(true)
     try {
-      const response = await fetch('http://localhost:8081/api/goods/list')
-      const result = await response.json()
+      const result = await http.get<{ code: number; message: string; data: Goods[] }>('/goods/list')
       if (result.code === 200) {
         setGoodsList(result.data)
         setFilteredGoodsList(result.data)
@@ -143,12 +143,15 @@ const GoodsBrowse: FC = () => {
 
   // 删除商品
   const handleDelete = async (id: number) => {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      message.warning('请先登录后再删除商品')
+      navigate('/user')
+      return
+    }
+    
     try {
-      const response = await fetch(`http://localhost:8081/api/goods/${id}`, {
-        method: 'DELETE',
-      })
-      
-      const result = await response.json()
+      const result = await http.delete<{ code: number; message: string }>(`/goods/${id}`)
       if (result.code === 200) {
         message.success('商品删除成功')
         fetchGoodsList()
@@ -160,8 +163,25 @@ const GoodsBrowse: FC = () => {
     }
   }
 
-  // 跳转到编辑页面
+  // 跳转到创建商品页面（需要登录）
+  const handleCreateGoods = () => {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      message.warning('请先登录后再创建商品')
+      navigate('/user')
+      return
+    }
+    navigate('/goods-create')
+  }
+
+  // 跳转到编辑页面（需要登录）
   const handleEdit = (record: Goods) => {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      message.warning('请先登录后再编辑商品')
+      navigate('/user')
+      return
+    }
     navigate(`/goods-edit/${record.id}`)
   }
 
@@ -320,7 +340,7 @@ const GoodsBrowse: FC = () => {
       <div className="goods-browse-container">
         <div className="goods-browse-header">
           <h2>商品浏览</h2>
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/goods-create')}>
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleCreateGoods}>
             添加商品
           </Button>
         </div>
