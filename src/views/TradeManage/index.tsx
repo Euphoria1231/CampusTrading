@@ -41,6 +41,13 @@ interface Trade {
   updated_at: string;
 }
 
+// 举报表单数据类型
+interface ReportFormData {
+  reason: string;
+  sellerId: number;
+  tradeId: number;
+}
+
 // 转换函数
 const convertTrade = (item: RawTrade): Trade => ({
   id: item.id,
@@ -105,6 +112,84 @@ const getTradeById = async (id: number): Promise<Trade> => {
 const updateTradeStatus = async (id: number, status: string): Promise<Trade> => {
   const res = await axios.patch(`${API_BASE}/trades/${id}`, { status });
   return convertTrade(res.data.data);
+};
+
+// 提交举报
+const submitReport = async (reportData: ReportFormData): Promise<void> => {
+  await axios.post(`${API_BASE}/evaluation/report`, reportData);
+};
+
+// 举报表单组件
+interface ReportModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (data: ReportFormData) => void;
+  sellerId: number;
+  tradeId: number;
+}
+
+const ReportModal: FC<ReportModalProps> = ({ 
+  isOpen, 
+  onClose, 
+  onSubmit, 
+  sellerId, 
+  tradeId 
+}) => {
+  const [reason, setReason] = useState<string>("");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reason.trim()) {
+      alert("请输入举报原因");
+      return;
+    }
+    
+    onSubmit({
+      reason: reason.trim(),
+      sellerId,
+      tradeId
+    });
+    
+    // 重置表单
+    setReason("");
+  };
+
+  const handleCancel = () => {
+    setReason("");
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-overlay">
+      <div className="report-modal">
+        <h3>举报交易</h3>
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label htmlFor="reason">举报原因 *</label>
+            <textarea
+              id="reason"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="请详细描述举报原因..."
+              rows={4}
+              required
+            />
+          </div>
+          
+          <div className="form-info">
+            <p><strong>交易订单号:</strong> {tradeId}</p>
+          </div>
+          
+          <div className="form-actions">
+            <button type="button" onClick={handleCancel}>取消</button>
+            <button type="submit">提交举报</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
 };
 
 // TradeListPage 组件
@@ -229,6 +314,8 @@ const TradeListPage: FC = () => {
 const TradeDetailPage: FC<{ id: string }> = ({ id }) => {
   const [trade, setTrade] = useState<Trade | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!id) {
@@ -267,6 +354,17 @@ const TradeDetailPage: FC<{ id: string }> = ({ id }) => {
     }
   };
 
+  const handleReportSubmit = async (reportData: ReportFormData) => {
+    try {
+      await submitReport(reportData);
+      alert("举报提交成功！");
+      setShowReportModal(false);
+    } catch (err) {
+      console.error("提交举报失败:", err);
+      alert("举报提交失败，请重试");
+    }
+  };
+
   if (loading) {
     return <div className="loading">加载中...</div>;
   }
@@ -282,6 +380,8 @@ const TradeDetailPage: FC<{ id: string }> = ({ id }) => {
     status,
     created_at,
     shipping_address,
+    seller_id,
+    id: tradeId
   } = trade;
 
   return (
@@ -315,12 +415,45 @@ const TradeDetailPage: FC<{ id: string }> = ({ id }) => {
             </p>
           </div>
         </div>
+        
+        {/* 操作按钮区域 */}
+        <div className="action-buttons">
+          {trade.status === "PENDING" && (
+            <button onClick={handleAccept} className="accept-button">
+              接受交易
+            </button>
+          )}
+          
+          {/* 评价按钮 - 只在ACCEPTED和COMPLETED状态显示 */}
+          {(trade.status === "ACCEPTED" || trade.status === "COMPLETED") && (
+            <button 
+              onClick={() => navigate(`/feedback/${trade.id}`)} 
+              className="evaluate-button"
+            >
+              评价
+            </button>
+          )}
+          
+          {/* 举报按钮 - 只在ACCEPTED和COMPLETED状态显示 */}
+          {(trade.status === "ACCEPTED" || trade.status === "COMPLETED") && (
+            <button 
+              onClick={() => setShowReportModal(true)} 
+              className="report-button"
+            >
+              举报
+            </button>
+          )}
+        </div>
       </div>
-      {trade.status === "PENDING" && (
-        <button onClick={handleAccept} style={{ marginTop: "20px" }}>
-          接受交易
-        </button>
-      )}
+
+      {/* 举报弹窗 */}
+      <ReportModal
+        isOpen={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        onSubmit={handleReportSubmit}
+        sellerId={seller_id}
+        tradeId={tradeId}
+      />
     </div>
   );
 };
