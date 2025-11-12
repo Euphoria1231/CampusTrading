@@ -4,6 +4,7 @@ import { ArrowLeftOutlined, EditOutlined, ClockCircleOutlined, EnvironmentOutlin
 import type { FC } from "react"
 import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
+import { http } from "@/utils/request"
 import './index.less'
 
 const { Title, Text } = Typography
@@ -25,9 +26,21 @@ interface Goods {
   updateTime?: string
 }
 
+interface SellerInfo {
+  sellerId: number
+  username: string
+  avatarUrl?: string
+  creditScore: number
+}
+
+interface GoodsDetailData {
+  goods: Goods
+  seller?: SellerInfo
+}
+
 const GoodsDetail: FC = () => {
   const [loading, setLoading] = useState(true)
-  const [goodsData, setGoodsData] = useState<Goods | null>(null)
+  const [detailData, setDetailData] = useState<GoodsDetailData | null>(null)
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
 
@@ -37,10 +50,9 @@ const GoodsDetail: FC = () => {
     
     setLoading(true)
     try {
-      const response = await fetch(`http://localhost:8081/api/goods/${id}`)
-      const result = await response.json()
+      const result = await http.get<{ code: number; message: string; data: GoodsDetailData }>(`/goods/${id}`)
       if (result.code === 200) {
-        setGoodsData(result.data)
+        setDetailData(result.data)
       } else {
         message.error(result.message)
         navigate('/goods-browse')
@@ -50,6 +62,16 @@ const GoodsDetail: FC = () => {
       navigate('/goods-browse')
     } finally {
       setLoading(false)
+    }
+  }
+  
+  // 联系卖家
+  const handleContactSeller = () => {
+    const sellerId = detailData?.goods?.sellerId
+    if (sellerId) {
+      // TODO: 跳转到消息通讯页面，传递sellerId
+      message.info(`准备联系卖家 ID: ${sellerId}，此功能将由消息通讯模块实现`)
+      // navigate(`/chat/${sellerId}`)
     }
   }
 
@@ -80,7 +102,7 @@ const GoodsDetail: FC = () => {
     )
   }
 
-  if (!goodsData) {
+  if (!detailData || !detailData.goods) {
     return (
       <SystemLayoutNoBackground>
         <div className="goods-detail-container">
@@ -94,6 +116,8 @@ const GoodsDetail: FC = () => {
       </SystemLayoutNoBackground>
     )
   }
+  
+  const { goods, seller } = detailData
 
   return (
     <SystemLayoutNoBackground>
@@ -130,10 +154,10 @@ const GoodsDetail: FC = () => {
             <Col xs={24} lg={12}>
               <Card className="image-card">
                 <div className="image-container">
-                  {goodsData.imageUrl ? (
+                  {goods.imageUrl ? (
                     <Image
-                      src={goodsData.imageUrl}
-                      alt={goodsData.name}
+                      src={goods.imageUrl}
+                      alt={goods.name}
                       className="goods-image"
                       fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSk6TpGpRE9BqJp0cKQ"
                     />
@@ -151,15 +175,15 @@ const GoodsDetail: FC = () => {
             <Col xs={24} lg={12}>
               <Card className="info-card">
                 <div className="goods-header">
-                  <Title level={3} className="goods-title">{goodsData.name}</Title>
-                  <div className="goods-price">¥{goodsData.price}</div>
+                  <Title level={3} className="goods-title">{goods.name}</Title>
+                  <div className="goods-price">¥{goods.price}</div>
                 </div>
 
                 <div className="goods-tags">
-                  <Tag className="category-tag">{goodsData.category}</Tag>
-                  <Tag className="condition-tag">{goodsData.conditionStatus}</Tag>
-                  <Tag className={`status-tag ${goodsData.status === 'ACTIVE' ? 'active' : 'inactive'}`}>
-                    {goodsData.status === 'ACTIVE' ? '上架' : '下架'}
+                  <Tag className="category-tag">{goods.category}</Tag>
+                  <Tag className="condition-tag">{goods.conditionStatus}</Tag>
+                  <Tag className={`status-tag ${goods.status === 'ACTIVE' ? 'active' : 'inactive'}`}>
+                    {goods.status === 'ACTIVE' ? '上架' : '下架'}
                   </Tag>
                 </div>
 
@@ -167,8 +191,42 @@ const GoodsDetail: FC = () => {
 
                 <div className="goods-description">
                   <Title level={5} className="section-title">商品描述</Title>
-                  <Text className="description-text">{goodsData.description}</Text>
+                  <Text className="description-text">{goods.description}</Text>
                 </div>
+                
+                <Divider />
+                
+                {/* 卖家信息 */}
+                {seller && (
+                  <div className="seller-info">
+                    <Title level={5} className="section-title">卖家信息</Title>
+                    <div className="seller-content">
+                      <div className="seller-avatar">
+                        {seller.avatarUrl ? (
+                          <img src={seller.avatarUrl} alt={seller.username} />
+                        ) : (
+                          <UserOutlined style={{ fontSize: 32 }} />
+                        )}
+                      </div>
+                      <div className="seller-details">
+                        <div className="seller-name">{seller.username}</div>
+                        <div className="seller-credit">
+                          信用分: <span className={seller.creditScore >= 80 ? 'high' : seller.creditScore >= 60 ? 'medium' : 'low'}>
+                            {seller.creditScore}
+                          </span>
+                        </div>
+                      </div>
+                      <Button 
+                        type="primary" 
+                        icon={<PhoneOutlined />}
+                        onClick={handleContactSeller}
+                        className="contact-button"
+                      >
+                        联系卖家
+                      </Button>
+                    </div>
+                  </div>
+                )}
 
                 <Divider />
 
@@ -176,32 +234,32 @@ const GoodsDetail: FC = () => {
                 <div className="trade-info">
                   <Title level={5} className="section-title">交易信息</Title>
                   <div className="trade-items">
-                    {goodsData.tradeTime && (
+                    {goods.tradeTime && (
                       <div className="trade-item">
                         <ClockCircleOutlined className="trade-icon" />
                         <div className="trade-content">
                           <Text className="trade-label">交易时间</Text>
-                          <Text className="trade-value">{goodsData.tradeTime}</Text>
+                          <Text className="trade-value">{goods.tradeTime}</Text>
                         </div>
                       </div>
                     )}
                     
-                    {goodsData.tradeLocation && (
+                    {goods.tradeLocation && (
                       <div className="trade-item">
                         <EnvironmentOutlined className="trade-icon" />
                         <div className="trade-content">
                           <Text className="trade-label">交易地点</Text>
-                          <Text className="trade-value">{goodsData.tradeLocation}</Text>
+                          <Text className="trade-value">{goods.tradeLocation}</Text>
                         </div>
                       </div>
                     )}
                     
-                    {goodsData.contactPhone && (
+                    {goods.contactPhone && (
                       <div className="trade-item">
                         <PhoneOutlined className="trade-icon" />
                         <div className="trade-content">
                           <Text className="trade-label">联系电话</Text>
-                          <Text className="trade-value">{goodsData.contactPhone}</Text>
+                          <Text className="trade-value">{goods.contactPhone}</Text>
                         </div>
                       </div>
                     )}
@@ -213,48 +271,32 @@ const GoodsDetail: FC = () => {
 
           {/* 详细信息卡片 */}
           <Card className="meta-card">
-            <Title level={4} className="meta-title">详细信息</Title>
+            <Title level={4} className="meta-title">商品信息</Title>
             <Row gutter={[24, 16]}>
-              <Col xs={24} sm={12} md={6}>
-                <div className="meta-item">
-                  <UserOutlined className="meta-icon" />
-                  <div className="meta-content">
-                    <Text className="meta-label">商品ID</Text>
-                    <Text className="meta-value">{goodsData.id}</Text>
-                  </div>
-                </div>
-              </Col>
-              <Col xs={24} sm={12} md={6}>
-                <div className="meta-item">
-                  <UserOutlined className="meta-icon" />
-                  <div className="meta-content">
-                    <Text className="meta-label">卖家ID</Text>
-                    <Text className="meta-value">{goodsData.sellerId}</Text>
-                  </div>
-                </div>
-              </Col>
-              <Col xs={24} sm={12} md={6}>
+              <Col xs={24} sm={12} md={8}>
                 <div className="meta-item">
                   <CalendarOutlined className="meta-icon" />
                   <div className="meta-content">
-                    <Text className="meta-label">创建时间</Text>
+                    <Text className="meta-label">发布时间</Text>
                     <Text className="meta-value">
-                      {new Date(goodsData.createTime!).toLocaleString()}
+                      {new Date(goods.createTime!).toLocaleString()}
                     </Text>
                   </div>
                 </div>
               </Col>
-              <Col xs={24} sm={12} md={6}>
-                <div className="meta-item">
-                  <CalendarOutlined className="meta-icon" />
-                  <div className="meta-content">
-                    <Text className="meta-label">更新时间</Text>
-                    <Text className="meta-value">
-                      {new Date(goodsData.updateTime!).toLocaleString()}
-                    </Text>
+              {goods.updateTime && goods.updateTime !== goods.createTime && (
+                <Col xs={24} sm={12} md={8}>
+                  <div className="meta-item">
+                    <CalendarOutlined className="meta-icon" />
+                    <div className="meta-content">
+                      <Text className="meta-label">更新时间</Text>
+                      <Text className="meta-value">
+                        {new Date(goods.updateTime!).toLocaleString()}
+                      </Text>
+                    </div>
                   </div>
-                </div>
-              </Col>
+                </Col>
+              )}
             </Row>
           </Card>
         </div>

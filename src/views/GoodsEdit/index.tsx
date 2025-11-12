@@ -4,6 +4,8 @@ import { ArrowLeftOutlined, SaveOutlined, UploadOutlined, PlusOutlined } from "@
 import type { FC } from "react"
 import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
+import { http } from "@/utils/request"
+import { getCurrentUserId } from "@/utils/auth"
 import './index.less'
 
 const { Title, Text } = Typography
@@ -27,6 +29,18 @@ interface Goods {
   updateTime?: string
 }
 
+interface SellerInfo {
+  sellerId: number
+  username: string
+  avatarUrl: string
+  creditScore: number
+}
+
+interface GoodsDetailVo {
+  goods: Goods
+  seller: SellerInfo
+}
+
 interface GoodsForm {
   name: string
   description: string
@@ -43,6 +57,7 @@ const GoodsEdit: FC = () => {
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
   const [initialLoading, setInitialLoading] = useState(true)
+  const [unauthorized, setUnauthorized] = useState(false)
   const [goodsData, setGoodsData] = useState<Goods | null>(null)
   const [imagePreview, setImagePreview] = useState<string>('')
   const [fileList, setFileList] = useState<any[]>([])
@@ -55,19 +70,60 @@ const GoodsEdit: FC = () => {
     
     setInitialLoading(true)
     try {
-      const response = await fetch(`http://localhost:8081/api/goods/${id}`)
-      const result = await response.json()
+      // 先检查是否登录
+      const token = localStorage.getItem('token')
+      console.log('=== 编辑页面权限校验 ===')
+      console.log('当前token:', token)
+      
+      const currentUserId = getCurrentUserId()
+      console.log('从token解析的用户ID:', currentUserId)
+      
+      if (!currentUserId) {
+        console.warn('未获取到用户ID，跳转到登录页')
+        message.error('请先登录')
+        navigate('/user')
+        return
+      }
+      
+      console.log('开始获取商品详情...')
+      const result = await http.get<{ code: number; message: string; data: GoodsDetailVo }>(`/goods/${id}`)
+      console.log('商品详情结果:', result)
+      
       if (result.code === 200) {
-        setGoodsData(result.data)
-        form.setFieldsValue(result.data)
-        if (result.data.imageUrl) {
-          setImagePreview(result.data.imageUrl)
+        // 后端返回的是 GoodsDetailVo，包含 goods 和 seller 两部分
+        const detailData = result.data
+        console.log('详情数据结构:', detailData)
+        
+        const goods = detailData.goods
+        console.log('商品对象:', goods)
+        console.log('商品卖家ID:', goods.sellerId)
+        console.log('当前用户ID:', currentUserId)
+        console.log('类型检查 - 卖家ID类型:', typeof goods.sellerId)
+        console.log('类型检查 - 用户ID类型:', typeof currentUserId)
+        
+        // 权限校验：只有卖家本人可以编辑（确保类型一致）
+        if (Number(goods.sellerId) !== Number(currentUserId)) {
+          console.warn('权限不足！卖家ID:', goods.sellerId, '当前用户:', currentUserId)
+          setUnauthorized(true)
+          message.error('您无权编辑此商品（只有商品卖家可以编辑）', 2)
+          // 立即跳转，不延迟
+          setTimeout(() => navigate('/goods-browse'), 800)
+          return
+        }
+        
+        console.log('✅ 权限校验通过，加载商品数据')
+        setGoodsData(goods)
+        form.setFieldsValue(goods)
+        if (goods.imageUrl) {
+          setImagePreview(goods.imageUrl)
         }
       } else {
+        console.error('获取商品详情失败:', result.message)
         message.error(result.message)
         navigate('/goods-browse')
       }
     } catch (error) {
+      console.error('获取商品详情异常:', error)
       message.error('获取商品详情失败')
       navigate('/goods-browse')
     } finally {
@@ -130,14 +186,33 @@ const GoodsEdit: FC = () => {
 
   // 提交表单
   const handleSubmit = async (values: GoodsForm) => {
+    if (!goodsData) {
+      message.error('商品数据未加载')
+      return
+    }
+    
     setLoading(true)
     try {
       // 检查图片URL，如果是blob URL则清空
+      let imageUrl = values.imageUrl
+      if (imageUrl?.startsWith('blob:')) {
+        imageUrl = '' // blob URL无效，清空
+      }
+      
+      // 构建提交数据 - 只包含需要更新的字段
       const submitData = {
-        ...values,
-        imageUrl: values.imageUrl?.startsWith('blob:') ? '' : values.imageUrl,
-        id: goodsData?.id,
-        sellerId: goodsData?.sellerId
+        id: goodsData.id,
+        name: values.name,
+        description: values.description,
+        price: values.price,
+        category: values.category,
+        conditionStatus: values.conditionStatus,
+        imageUrl: imageUrl || goodsData.imageUrl, // 如果没有新URL，保留原有的
+        tradeTime: values.tradeTime || '',
+        tradeLocation: values.tradeLocation || '',
+        contactPhone: values.contactPhone || '',
+        sellerId: goodsData.sellerId, // 保持原sellerId
+        status: goodsData.status // 保持原状态
       }
       
       // 如果用户上传了本地图片但没有提供URL，给出提示
@@ -145,23 +220,20 @@ const GoodsEdit: FC = () => {
         message.warning('检测到您上传了本地图片，但未提供图片URL。请使用图床服务（如imgur、七牛云等）获取图片URL，或留空使用默认图片。')
       }
       
-      const response = await fetch('http://localhost:8081/api/goods/update', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(submitData),
-      })
+      console.log('提交更新数据:', submitData)
+      const result = await http.put<{ code: number; message: string }>('/goods/update', submitData)
+      console.log('更新结果:', result)
       
-      const result = await response.json()
       if (result.code === 200) {
         message.success('商品更新成功')
         navigate('/goods-browse')
       } else {
-        message.error(result.message)
+        message.error(result.message || '更新失败')
       }
-    } catch (error) {
-      message.error('更新失败')
+    } catch (error: any) {
+      console.error('更新失败:', error)
+      const errorMsg = error.response?.data?.message || error.message || '更新失败'
+      message.error(errorMsg)
     } finally {
       setLoading(false)
     }
@@ -176,13 +248,16 @@ const GoodsEdit: FC = () => {
     fetchGoodsDetail()
   }, [id])
 
-  if (initialLoading) {
+  // 加载中或权限不足时都显示加载状态，防止短暂显示编辑表单
+  if (initialLoading || unauthorized) {
     return (
       <SystemLayoutNoBackground>
         <div className="goods-edit-container">
           <div style={{ textAlign: 'center', padding: '100px 0' }}>
             <Spin size="large" />
-            <div style={{ marginTop: 16 }}>加载商品详情中...</div>
+            <div style={{ marginTop: 16 }}>
+              {unauthorized ? '权限验证中，即将返回...' : '加载商品详情中...'}
+            </div>
           </div>
         </div>
       </SystemLayoutNoBackground>
