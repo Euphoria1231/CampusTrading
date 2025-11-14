@@ -1,5 +1,3 @@
-// src/views/TradeManage/index.less
-
 .trade-manage-container {
   padding: 20px;
   
@@ -12,6 +10,7 @@
     border-radius: 8px;
     padding: 20px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    position: relative;
   }
   
   // 列表样式
@@ -96,10 +95,16 @@
       border-radius: 4px;
       background: white;
       cursor: pointer;
+      transition: all 0.2s ease;
       
       &.active {
         background-color: #007bff;
         color: white;
+        border-color: #007bff;
+      }
+      
+      &:hover:not(.active) {
+        background-color: #f8f9fa;
       }
     }
   }
@@ -111,15 +116,20 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #f0f0f0;
       
       h2 {
         margin: 0;
+        font-size: 24px;
+        color: #333;
       }
       
       .status-badge {
         padding: 6px 12px;
         border-radius: 4px;
         font-weight: bold;
+        font-size: 14px;
         
         &.pending {
           background-color: #fff3cd;
@@ -135,12 +145,25 @@
           background-color: #d4edda;
           color: #155724;
         }
+        
+        &.cancelled {
+          background-color: #f8d7da;
+          color: #721c24;
+        }
+        
+        &.shipped {
+          background-color: #e2e3e5;
+          color: #383d41;
+        }
       }
     }
     
     .product-info {
       display: flex;
-      margin-bottom: 20px;
+      margin-bottom: 24px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
       
       img {
         width: 120px;
@@ -148,16 +171,29 @@
         object-fit: cover;
         border-radius: 8px;
         margin-right: 20px;
+        border: 1px solid #e9ecef;
       }
       
       .details {
+        flex: 1;
+        
         h3 {
           margin-top: 0;
+          margin-bottom: 12px;
+          font-size: 18px;
+          color: #333;
         }
         
         p {
-          margin: 4px 0;
+          margin: 8px 0;
           color: #666;
+          font-size: 14px;
+          
+          &:last-child {
+            font-weight: bold;
+            color: #e74c3c;
+            font-size: 16px;
+          }
         }
       }
     }
@@ -165,32 +201,406 @@
     .trade-meta {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
+      gap: 20px;
+      margin-bottom: 24px;
       
       .meta-item {
+        padding: 16px;
+        background: #f8f9fa;
+        border-radius: 6px;
+        
         p {
-          margin: 4px 0;
+          margin: 0;
           color: #666;
+          font-size: 14px;
           
           strong {
             color: #333;
+            display: block;
+            margin-bottom: 4px;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
           }
         }
       }
+    }
+    
+    // 操作按钮区域
+    .action-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid #f0f0f0;
+      
+      .accept-button {
+        background: #52c41a;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        
+        &:hover {
+          background: #73d13d;
+          transform: translateY(-1px);
+          box-shadow: 0 2px 8px rgba(82, 196, 26, 0.3);
+        }
+        
+        &:active {
+          transform: translateY(0);
+        }
+      }
+      
+      .evaluate-button {
+        background: #1890ff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        
+        &:hover {
+          background: #40a9ff;
+          transform: translateY(-1px);
+          box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3);
+        }
+        
+        &:active {
+          transform: translateY(0);
+        }
+      }
+      
+      .report-button {
+        background: #ff4d4f;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        
+        &:hover {
+          background: #ff7875;
+          transform: translateY(-1px);
+          box-shadow: 0 2px 8px rgba(255, 77, 79, 0.3);
+        }
+        
+        &:active {
+          transform: translateY(0);
+        }
+      }
+    }
+  }
+  
+  // 举报弹窗样式
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(2px);
+  }
+
+  .report-modal {
+    background: white;
+    padding: 28px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 480px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    animation: modalSlideIn 0.3s ease;
+
+    h3 {
+      margin: 0 0 24px 0;
+      font-size: 20px;
+      color: #333;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #333;
+        font-size: 14px;
+      }
+
+      textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+        resize: vertical;
+        min-height: 100px;
+        font-family: inherit;
+        transition: border-color 0.2s ease;
+
+        &:focus {
+          outline: none;
+          border-color: #1890ff;
+          box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+        }
+        
+        &::placeholder {
+          color: #999;
+        }
+      }
+    }
+
+    .form-info {
+      background: #f8f9fa;
+      padding: 16px;
+      border-radius: 6px;
+      margin-bottom: 24px;
+      border-left: 4px solid #1890ff;
+
+      p {
+        margin: 6px 0;
+        font-size: 14px;
+        color: #666;
+        
+        strong {
+          color: #333;
+          font-weight: 600;
+        }
+      }
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+
+      button {
+        padding: 10px 20px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        min-width: 80px;
+
+        &[type="button"] {
+          background: white;
+          color: #666;
+          border-color: #d9d9d9;
+
+          &:hover {
+            background: #f5f5f5;
+            border-color: #bbb;
+          }
+        }
+
+        &[type="submit"] {
+          background: #1890ff;
+          color: white;
+          border-color: #1890ff;
+
+          &:hover {
+            background: #40a9ff;
+            border-color: #40a9ff;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3);
+          }
+          
+          &:active {
+            transform: translateY(0);
+          }
+        }
+      }
+    }
+  }
+
+  @keyframes modalSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-20px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  
+  // 分页控件样式
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #f0f0f0;
+    
+    button {
+      padding: 8px 16px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      
+      &:hover:not(:disabled) {
+        background: #f8f9fa;
+        border-color: #bbb;
+      }
+      
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+    
+    span {
+      color: #666;
+      font-size: 14px;
     }
   }
   
   // 加载状态
   .loading {
     text-align: center;
-    padding: 40px;
+    padding: 60px 20px;
+    color: #666;
+    font-size: 16px;
+    
+    &::before {
+      content: "⏳";
+      display: block;
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
   }
   
   // 空状态
   .empty {
     text-align: center;
-    padding: 40px;
+    padding: 60px 20px;
     color: #999;
+    font-size: 16px;
+    
+    &::before {
+      content: "📦";
+      display: block;
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
   }
 }
- 
+
+// 响应式设计
+@media (max-width: 768px) {
+  .trade-manage-container {
+    padding: 12px;
+    
+    .trade-content {
+      padding: 16px;
+    }
+    
+    .trade-filter {
+      flex-wrap: wrap;
+      
+      button {
+        flex: 1;
+        min-width: 80px;
+      }
+    }
+    
+    .trade-detail {
+      .product-info {
+        flex-direction: column;
+        text-align: center;
+        
+        img {
+          margin-right: 0;
+          margin-bottom: 16px;
+          width: 100%;
+          max-width: 200px;
+          height: auto;
+        }
+      }
+      
+      .trade-meta {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+      
+      .action-buttons {
+        flex-direction: column;
+        
+        button {
+          width: 100%;
+        }
+      }
+    }
+    
+    .report-modal {
+      margin: 20px;
+      padding: 20px;
+      
+      .form-actions {
+        flex-direction: column;
+        
+        button {
+          width: 100%;
+        }
+      }
+    }
+    
+    .pagination {
+      flex-direction: column;
+      gap: 12px;
+    }
+  }
+}
+
+// 用户角色信息样式
+.user-role-info {
+  margin-bottom: 16px;
+  
+  .role-tag {
+    display: inline-block;
+    padding: 4px 12px;
+    background: #f0f0f0;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #666;
+    font-weight: 500;
+  }
+}
+
+// 无操作状态样式
+.no-actions {
+  text-align: center;
+  padding: 20px;
+  color: #999;
+  
+  p {
+    margin: 0;
+    font-size: 14px;
+  }
+}
