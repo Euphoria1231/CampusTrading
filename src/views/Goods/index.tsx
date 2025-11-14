@@ -3,6 +3,7 @@ import { Button, Card, Form, Input, InputNumber, Modal, Select, Table, message, 
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons"
 import type { FC } from "react"
 import { useEffect, useState } from "react"
+import { http } from "@/utils/request"
 import './index.less'
 
 const { Option } = Select
@@ -33,8 +34,7 @@ const Goods: FC = () => {
   const fetchGoodsList = async () => {
     setLoading(true)
     try {
-      const response = await fetch('http://localhost:8081/api/goods/list')
-      const result = await response.json()
+      const result = await http.get<{ code: number; message: string; data: Goods[] }>('/goods/list')
       if (result.code === 200) {
         setGoodsList(result.data)
       } else {
@@ -50,23 +50,16 @@ const Goods: FC = () => {
   // 创建或更新商品
   const handleSubmit = async (values: Goods) => {
     try {
-      const url = editingGoods
-        ? `http://localhost:8081/api/goods/update`
-        : `http://localhost:8081/api/goods/create`
+      const url = editingGoods ? '/goods/update' : '/goods/create'
+      const method = editingGoods ? 'put' : 'post'
 
-      const response = await fetch(url, {
-        method: editingGoods ? 'PUT' : 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...values,
-          id: editingGoods?.id,
-          sellerId: 1 // 模拟卖家ID
-        }),
-      })
+      // 编辑时保留原sellerId，创建时由后端从token自动获取
+      const submitData = editingGoods 
+        ? { ...values, id: editingGoods.id, sellerId: editingGoods.sellerId }
+        : { ...values } // 创建商品时不传sellerId，由后端自动设置
 
-      const result = await response.json()
+      const result = await http[method]<{ code: number; message: string }>(url, submitData)
+
       if (result.code === 200) {
         message.success(editingGoods ? '商品更新成功' : '商品创建成功')
         setModalVisible(false)
@@ -74,21 +67,18 @@ const Goods: FC = () => {
         form.resetFields()
         fetchGoodsList()
       } else {
-        message.error(result.message)
+        message.error(result.message || '操作失败')
       }
-    } catch (error) {
-      message.error('操作失败')
+    } catch (error: any) {
+      console.error('提交失败:', error)
+      message.error(error.response?.data?.message || '操作失败')
     }
   }
 
   // 删除商品
   const handleDelete = async (id: number) => {
     try {
-      const response = await fetch(`http://localhost:8081/api/goods/${id}`, {
-        method: 'DELETE',
-      })
-
-      const result = await response.json()
+      const result = await http.delete<{ code: number; message: string }>(`/goods/${id}`)
       if (result.code === 200) {
         message.success('商品删除成功')
         fetchGoodsList()
