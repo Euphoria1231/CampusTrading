@@ -1,4 +1,10 @@
-// index.less 新增个人中心样式
+// 确保根元素和body充满整个屏幕
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 .user-profile-container {
   display: flex;
   justify-content: center;
@@ -6,109 +12,249 @@
   min-height: 100vh;
   padding: 40px 20px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  
+  // 确保背景延伸到整个页面
+  &::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    z-index: -1;
+  }
 
   .profile-card {
     width: 800px;
-    border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    z-index: 1;
 
     :global(.ant-card-head) {
-      border-bottom: 1px solid #f0f0f0;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border-radius: 12px 12px 0 0;
       
       .ant-card-head-title {
         font-size: 24px;
         font-weight: 600;
-        color: #1890ff;
+        color: #495057;
       }
+    }
+
+    :global(.ant-card-body) {
+      padding: 32px;
+      background: transparent;
     }
   }
+}
 
-  .profile-view {
-    .profile-header {
-      display: flex;
-      align-items: center;
-      gap: 24px;
-      margin-bottom: 24px;
+// 其他样式保持不变...
+.profile-view {
+  .profile-header {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 24px;
 
-      .profile-avatar {
-        border: 3px solid #1890ff;
-      }
-
-      .profile-basic-info {
-        h2 {
-          margin: 0;
-          font-size: 24px;
-          color: #333;
-        }
-
-        .username {
-          margin: 4px 0;
-          color: #666;
-          font-size: 14px;
-        }
-
-        .profile-tags {
-          margin-top: 8px;
-          
-          :global(.ant-tag) {
-            margin-right: 8px;
-          }
-        }
-      }
+    .profile-avatar {
+      border: 3px solid #667eea;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
     }
 
-    .profile-details {
-      margin: 24px 0;
-
-      :global(.ant-descriptions-item-label) {
-        font-weight: 600;
-        background: #fafafa;
+    .profile-basic-info {
+      h2 {
+        margin: 0;
+        font-size: 24px;
+        color: #495057;
       }
-    }
 
-    .profile-actions {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      margin-top: 32px;
+      .username {
+        margin: 4px 0;
+        color: #6c757d;
+        font-size: 14px;
+      }
 
-      .change-password-btn {
-        background: #52c41a;
-        border-color: #52c41a;
+      .profile-tags {
+        margin-top: 8px;
         
-        &:hover {
-          background: #73d13d;
-          border-color: #73d13d;
+        :global(.ant-tag) {
+          margin-right: 8px;
+          border: none;
+          font-weight: 500;
         }
       }
     }
   }
 
-  .profile-edit {
-    .edit-section {
-      margin-bottom: 24px;
+  .profile-details {
+    margin: 24px 0;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 
-      h3 {
-        margin-bottom: 16px;
-        color: #333;
-        font-size: 16px;
-        font-weight: 600;
-        border-left: 3px solid #1890ff;
-        padding-left: 8px;
+    :global(.ant-descriptions-item-label) {
+      font-weight: 600;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      color: #495057;
+    }
+
+    :global(.ant-descriptions-item-content) {
+      background: #fff;
+      color: #6c757d;
+    }
+  }
+
+  .profile-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+
+    .change-password-btn {
+      background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
+      border: none;
+      box-shadow: 0 2px 6px rgba(82, 196, 26, 0.3);
+      
+      &:hover {
+        background: linear-gradient(135deg, #73d13d 0%, #95de64 100%);
+        box-shadow: 0 4px 12px rgba(82, 196, 26, 0.4);
       }
     }
 
-    .edit-actions {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      margin-top: 32px;
+    button {
+      border-radius: 6px;
+      font-weight: 500;
+    }
+  }
+}
 
-      button {
-        min-width: 100px;
-        height: 40px;
+.profile-edit {
+  .edit-section {
+    margin-bottom: 24px;
+
+    h3 {
+      margin-bottom: 16px;
+      color: #495057;
+      font-size: 16px;
+      font-weight: 600;
+      border-left: 3px solid #667eea;
+      padding-left: 12px;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      padding: 8px 12px;
+      border-radius: 0 6px 6px 0;
+    }
+  }
+
+  .edit-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+
+    button {
+      min-width: 100px;
+      height: 40px;
+      border-radius: 6px;
+      font-weight: 500;
+    }
+  }
+}
+
+// 商品展示区域样式
+.recent-goods-section {
+  margin: 32px 0;
+  padding: 24px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  
+  :global(.ant-typography) {
+    color: #495057;
+    margin-bottom: 0;
+  }
+  
+  .goods-card {
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    transition: all 0.3s ease;
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    }
+    
+    :global(.ant-card-body) {
+      padding: 16px;
+      background: #fff;
+    }
+    
+    :global(.ant-card-meta-title) {
+      margin-bottom: 8px;
+      font-size: 14px;
+      line-height: 1.4;
+      color: #495057;
+    }
+    
+    :global(.ant-card-meta-description) {
+      font-size: 12px;
+      color: #6c757d;
+    }
+    
+    :global(.ant-card-actions) {
+      background: #f8f9fa;
+      border-top: 1px solid rgba(0, 0, 0, 0.06);
+      
+      > li {
+        margin: 8px 0;
       }
     }
+  }
+}
+
+// 分页样式
+:global(.ant-pagination) {
+  :global(.ant-pagination-item) {
+    border-radius: 6px;
+    
+    a {
+      color: #6c757d;
+    }
+    
+    &:global(.ant-pagination-item-active) {
+      border-color: #667eea;
+      background: #667eea;
+      
+      a {
+        color: #fff;
+      }
+    }
+  }
+  
+  :global(.ant-pagination-prev),
+  :global(.ant-pagination-next) {
+    border-radius: 6px;
+  }
+}
+
+// 空状态样式
+:global(.ant-empty) {
+  .ant-empty-image {
+    margin-bottom: 16px;
+  }
+  
+  .ant-empty-description {
+    color: #6c757d;
   }
 }
 
@@ -119,6 +265,11 @@
 
     .profile-card {
       width: 100%;
+      margin: 0;
+      
+      :global(.ant-card-body) {
+        padding: 20px;
+      }
     }
 
     .profile-view {
@@ -147,4 +298,33 @@
       }
     }
   }
+
+  .recent-goods-section {
+    margin: 24px 0;
+    padding: 16px;
+    
+    .goods-card {
+      :global(.ant-card-body) {
+        padding: 12px;
+      }
+    }
+  }
+}
+
+// 全局背景色设置 - 关键修复
+body {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  margin: 0;
+  min-height: 100%;
+}
+
+#root {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  min-height: 100vh;
+}
+
+// 确保所有可能的容器都有背景色
+.app-container, .main-container, .layout-container {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  min-height: 100vh;
 }

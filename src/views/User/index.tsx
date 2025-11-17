@@ -1,11 +1,13 @@
 import SystemLayoutNoBackground from "@/components/SystemLayout/SystemLayoutNoBackground"
 import type { FC } from "react"
-import { Form, Input, Button, Card, message, Avatar, Descriptions, Tag, Divider, Alert, Steps, notification } from "antd"
-import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined, IdcardOutlined, EditOutlined, SaveOutlined, CloseOutlined, ExclamationCircleOutlined } from "@ant-design/icons"
+import { Form, Input, Button, Card, message, Avatar, Descriptions, Tag, Divider, Alert, Steps, notification, List, Image, Pagination, Typography, Space } from "antd"
+import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined, IdcardOutlined, EditOutlined, SaveOutlined, CloseOutlined, ExclamationCircleOutlined, ShoppingOutlined, EyeOutlined } from "@ant-design/icons"
 import { useNavigate, useLocation } from "react-router-dom"
 import { useEffect, useState } from "react"
-import { http } from "@/utils/request" // 导入封装的http方法
+import { http } from "@/utils/request"
 import './index.less'
+
+const { Text, Title } = Typography
 
 interface LoginForm {
   username: string
@@ -44,6 +46,29 @@ interface UserProfile {
   token?: string
 }
 
+// 分页查询商品相关
+interface Goods {
+  id: number
+  name: string
+  description: string
+  price: number
+  category: string
+  conditionStatus: string
+  imageUrl?: string
+  status: string
+  createTime: string
+  updateTime: string
+}
+interface PageInfo<T> {
+  list: T[]
+  total: number
+  pageNum: number
+  pageSize: number
+  pages: number
+}
+
+
+
 const User: FC = () => {
   const navigate = useNavigate()
   const location = useLocation()
@@ -56,9 +81,19 @@ const User: FC = () => {
   const [profileForm] = Form.useForm()
   const [userInfo, setUserInfo] = useState<any>(null)
   const [loading, setLoading] = useState(false)
+  const [goodsLoading, setGoodsLoading] = useState(false)
   
   // 用户数据
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
+  
+  // 商品数据
+  const [goodsData, setGoodsData] = useState<PageInfo<Goods>>({
+    list: [],
+    total: 0,
+    pageNum: 1,
+    pageSize: 6,
+    pages: 0
+  })
 
   // 信用分阈值 - 低于60分被封禁
   const BANNED_CREDIT_SCORE = 60
@@ -84,6 +119,8 @@ const User: FC = () => {
       setCurrentPage('profile')
       // 获取用户信息
       fetchUserProfile()
+      // 获取用户商品
+      fetchUserGoods(1, goodsData.pageSize)
     } else {
       setCurrentPage('login')
     }
@@ -91,6 +128,69 @@ const User: FC = () => {
 
   // 检查用户是否被封禁
   const isUserBanned = userProfile?.creditScore ? userProfile.creditScore < BANNED_CREDIT_SCORE : false
+
+  // 获取用户近期商品
+  const fetchUserGoods = async (pageNum: number, pageSize: number) => {
+    setGoodsLoading(true)
+    try {
+      const result = await http.get<{ code: number; message: string; data: PageInfo<Goods> }>(
+        `/user/recent-goods?pageNum=${pageNum}&pageSize=${pageSize}`
+      )
+      
+      if (result.code === 200) {
+        setGoodsData(result.data)
+        console.log('获取用户商品成功:', result.data)
+      } else {
+        console.error('获取用户商品失败:', result.message)
+      }
+    } catch (error) {
+      console.error('获取用户商品失败:', error)
+    } finally {
+      setGoodsLoading(false)
+    }
+  }
+
+  // 处理分页变化
+  const handlePageChange = (page: number, pageSize?: number) => {
+    fetchUserGoods(page, pageSize || goodsData.pageSize)
+  }
+
+  // 格式化价格显示
+  const formatPrice = (price: number) => {
+    return `¥${price.toFixed(2)}`
+  }
+
+  // 格式化时间显示
+  const formatTime = (timeString: string) => {
+    return new Date(timeString).toLocaleDateString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    })
+  }
+
+  // 获取商品状态标签颜色
+  const getGoodsStatusColor = (status: string) => {
+    const statusMap: { [key: string]: string } = {
+      '上架中': 'success',
+      '已售出': 'default',
+      '已下架': 'warning',
+      '交易中': 'processing'
+    }
+    return statusMap[status] || 'default'
+  }
+
+  // 获取商品状态显示文本
+  const getGoodsStatusText = (status: string) => {
+    const statusMap: { [key: string]: string } = {
+      '上架中': '在售',
+      '已售出': '已售',
+      '已下架': '下架',
+      '交易中': '交易中'
+    }
+    return statusMap[status] || status
+  }
+
 
   // 登录API调用
   const handleLogin = async (values: LoginForm) => {
@@ -396,6 +496,136 @@ const User: FC = () => {
                     返回首页
                   </Button>
                 </div>
+                <Divider />
+
+                
+                
+                {/* 用户近期商品展示模块 */}
+                <div className="recent-goods-section">
+                  <Title level={4} style={{ marginBottom: 16 }}>
+                    <ShoppingOutlined /> 商品橱窗
+                  </Title>
+                  
+                  {goodsLoading ? (
+                    <div style={{ textAlign: 'center', padding: '40px' }}>
+                      <div>商品加载中...</div>
+                    </div>
+                  ) : goodsData.list.length > 0 ? (
+                    <>
+                      <List
+                        grid={{
+                          gutter: 16,
+                          xs: 1,
+                          sm: 2,
+                          md: 2,
+                          lg: 3,
+                          xl: 3,
+                          xxl: 3,
+                        }}
+                        dataSource={goodsData.list}
+                        renderItem={(item) => (
+                          <List.Item>
+                            <Card
+                              hoverable
+                              className="goods-card"
+                              cover={
+                                item.imageUrl ? (
+                                  <Image
+                                    alt={item.name}
+                                    src={item.imageUrl}
+                                    height={160}
+                                    style={{ objectFit: 'cover' }}
+                                    preview={{
+                                      mask: <EyeOutlined />,
+                                    }}
+                                  />
+                                ) : (
+                                  <div 
+                                    style={{ 
+                                      height: 160, 
+                                      background: '#f5f5f5', 
+                                      display: 'flex', 
+                                      alignItems: 'center', 
+                                      justifyContent: 'center',
+                                      color: '#999'
+                                    }}
+                                  >
+                                    <ShoppingOutlined style={{ fontSize: 32 }} />
+                                  </div>
+                                )
+                              }
+                              actions={[
+                                <Tag color={getGoodsStatusColor(item.status)}>
+                                  {getGoodsStatusText(item.status)}
+                                </Tag>,
+                                <Text strong type="success">
+                                  {formatPrice(item.price)}
+                                </Text>
+                              ]}
+                            >
+                              <Card.Meta
+                                title={
+                                  <Text ellipsis={{ tooltip: item.name }}>
+                                    {item.name}
+                                  </Text>
+                                }
+                                description={
+                                  <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                                    <Text 
+                                      type="secondary" 
+                                      ellipsis={{ tooltip: item.description }}
+                                      style={{ fontSize: '12px' }}
+                                    >
+                                      {item.description}
+                                    </Text>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                                      <Text type="secondary">{item.category}</Text>
+                                      <Text type="secondary">{formatTime(item.createTime)}</Text>
+                                    </div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                                      <Tag color="blue" style={{ fontSize: '12px' }}>{item.conditionStatus}</Tag>
+                                    </div>
+                                  </Space>
+                                }
+                              />
+                            </Card>
+                          </List.Item>
+                        )}
+                      />
+                      
+                      {/* 分页组件 */}
+                      {goodsData.pages > 1 && (
+                        <div style={{ textAlign: 'center', marginTop: 24 }}>
+                          <Pagination
+                            current={goodsData.pageNum}
+                            pageSize={goodsData.pageSize}
+                            total={goodsData.total}
+                            onChange={handlePageChange}
+                            showSizeChanger
+                            showQuickJumper
+                            showTotal={(total, range) => 
+                              `第 ${range[0]}-${range[1]} 条，共 ${total} 条商品`
+                            }
+                          />
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
+                      <ShoppingOutlined style={{ fontSize: 48, marginBottom: 16 }} />
+                      <div>暂无商品</div>
+                      <Button 
+                        type="primary" 
+                        style={{ marginTop: 16 }}
+                        onClick={() => navigate('/goods/publish')}
+                      >
+                        发布商品
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                
               </div>
             ) : (
               // 编辑模式
