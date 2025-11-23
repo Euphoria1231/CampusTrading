@@ -2,9 +2,10 @@ import SystemLayoutNoBackground from "@/components/SystemLayout/SystemLayoutNoBa
 import ConversationItem from "@/components/ConversationItem"
 import MessageList from "@/components/MessageList"
 import MessageInput from "@/components/MessageInput"
-import { Card, Empty, Typography, Divider } from "antd"
-import { useState } from "react"
+import { Card, Empty, Typography, Divider, message as antMessage } from "antd"
+import { useState, useEffect } from "react"
 import type { FC } from "react"
+import { useParams } from "react-router-dom"
 import type { Message } from "@/components/MessageList"
 import './index.less'
 
@@ -154,6 +155,30 @@ const mockMessages: Record<string, Message[]> = {
 
 const Connection: FC = () => {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null)
+  const { sellerId } = useParams<{ sellerId: string }>()
+
+  // 当传入 sellerId 时，自动选中或创建与该卖家的会话
+  useEffect(() => {
+    if (sellerId) {
+      // 查找是否已有与该卖家的会话
+      const existingConversation = mockConversations.find(
+        conv => conv.userId === `user${sellerId}`
+      )
+      
+      if (existingConversation) {
+        // 如果已存在会话，自动选中
+        setSelectedConversationId(existingConversation.id)
+      } else {
+        // 如果不存在，可以创建新会话或提示用户
+        antMessage.info(`正在联系卖家 ID: ${sellerId}`)
+        // 这里可以扩展：调用后端API创建新会话
+        // 目前使用模拟数据，直接选中第一个会话作为示例
+        if (mockConversations.length > 0) {
+          setSelectedConversationId(mockConversations[0].id)
+        }
+      }
+    }
+  }, [sellerId])
 
   const handleConversationClick = (conversationId: string) => {
     setSelectedConversationId(conversationId)

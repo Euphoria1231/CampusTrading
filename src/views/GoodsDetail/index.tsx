@@ -1,6 +1,6 @@
 import SystemLayoutNoBackground from "@/components/SystemLayout/SystemLayoutNoBackground"
 import { Button, Card, Descriptions, message, Spin, Tag, Image, Row, Col, Typography, Divider, Space } from "antd"
-import { ArrowLeftOutlined, EditOutlined, ClockCircleOutlined, EnvironmentOutlined, PhoneOutlined, UserOutlined, CalendarOutlined } from "@ant-design/icons"
+import { ArrowLeftOutlined, EditOutlined, ClockCircleOutlined, EnvironmentOutlined, PhoneOutlined, UserOutlined, CalendarOutlined, StarOutlined, HomeOutlined } from "@ant-design/icons"
 import type { FC } from "react"
 import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
@@ -69,9 +69,9 @@ const GoodsDetail: FC = () => {
   const handleContactSeller = () => {
     const sellerId = detailData?.goods?.sellerId
     if (sellerId) {
-      // TODO: 跳转到消息通讯页面，传递sellerId
-      message.info(`准备联系卖家 ID: ${sellerId}，此功能将由消息通讯模块实现`)
-      // navigate(`/chat/${sellerId}`)
+      // 跳转到消息通讯页面，传递sellerId
+      navigate(`/connection/${sellerId}`)
+      message.success('正在跳转到聊天页面...')
     }
   }
 
@@ -83,6 +83,24 @@ const GoodsDetail: FC = () => {
   // 跳转到编辑页面
   const handleEdit = () => {
     navigate(`/goods-edit/${id}`)
+  }
+
+  // 查看卖家主页
+  const handleViewSellerProfile = () => {
+    const sellerId = detailData?.goods?.sellerId
+    if (sellerId) {
+      // TODO: 跳转到卖家个人空间页面，由用户管理模块实现
+      message.info(`准备查看卖家主页 ID: ${sellerId}，此功能由用户管理模块实现`)
+      // navigate(`/user/profile/${sellerId}`)
+    }
+  }
+
+  // 查看近期评价
+  const handleViewReviews = () => {
+    if (id) {
+      // 跳转到评价列表页面
+      navigate(`/reviews/goods/${id}`)
+    }
   }
 
   useEffect(() => {
@@ -216,14 +234,33 @@ const GoodsDetail: FC = () => {
                           </span>
                         </div>
                       </div>
-                      <Button 
-                        type="primary" 
-                        icon={<PhoneOutlined />}
-                        onClick={handleContactSeller}
-                        className="contact-button"
-                      >
-                        联系卖家
-                      </Button>
+                      <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                        <Button 
+                          type="primary" 
+                          icon={<PhoneOutlined />}
+                          onClick={handleContactSeller}
+                          className="contact-button"
+                          block
+                        >
+                          联系卖家
+                        </Button>
+                        <Space style={{ width: '100%' }}>
+                          <Button 
+                            icon={<HomeOutlined />}
+                            onClick={handleViewSellerProfile}
+                            style={{ flex: 1 }}
+                          >
+                            卖家主页
+                          </Button>
+                          <Button 
+                            icon={<StarOutlined />}
+                            onClick={handleViewReviews}
+                            style={{ flex: 1 }}
+                          >
+                            近期评价
+                          </Button>
+                        </Space>
+                      </Space>
                     </div>
                   </div>
                 )}

@@ -9,6 +9,7 @@ import GoodsBrowse from "./views/GoodsBrowse"
 import GoodsCreate from "./views/GoodsCreate"
 import GoodsEdit from "./views/GoodsEdit"
 import GoodsDetail from "./views/GoodsDetail"
+import Reviews from "./views/Reviews"
 function App() {
 
   return (
@@ -29,10 +30,12 @@ function App() {
           <Route element={<Feedback />} path="feedback" />
           <Route element={<Feedback />} path="feedback/:tradeId" />
           <Route element={<Connection />} path="connection" />
+          <Route element={<Connection />} path="connection/:sellerId" />
           <Route element={<GoodsBrowse />} path="goods-browse" />
           <Route element={<GoodsCreate />} path="goods-create" />
           <Route element={<GoodsEdit />} path="goods-edit/:id" />
           <Route element={<GoodsDetail />} path="goods-detail/:id" />
+          <Route element={<Reviews />} path="reviews/goods/:id" />
         </Routes>
       </HashRouter>
     </>
