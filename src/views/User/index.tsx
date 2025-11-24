@@ -72,7 +72,7 @@ interface PageInfo<T> {
 const User: FC = () => {
   const navigate = useNavigate()
   const location = useLocation()
-  const [currentPage, setCurrentPage] = useState<'login' | 'register' | 'forgotPassword' | 'profile'>('login')
+  const [currentPage, setCurrentPage] = useState<'login' | 'register' | 'forgotPassword' | 'profile' | 'seller-profile'>('login')
   const [currentStep, setCurrentStep] = useState(0)
   const [isEditing, setIsEditing] = useState(false)
   const [loginForm] = Form.useForm()
@@ -91,7 +91,7 @@ const User: FC = () => {
     list: [],
     total: 0,
     pageNum: 1,
-    pageSize: 6,
+    pageSize: 1,
     pages: 0
   })
 
@@ -99,67 +99,123 @@ const User: FC = () => {
   const BANNED_CREDIT_SCORE = 60
 
   // 根据路由判断当前页面
-  useEffect(() => {
-    console.log('路由变化:', location.pathname)
-    console.log('当前token:', localStorage.getItem('token'))
+  // 修改 useEffect 钩子，添加卖家ID路由判断
+useEffect(() => {
+  console.log('路由变化:', location.pathname)
+  // console.log('当前token:', localStorage.getItem('token'))
+  
+  // 提取路径中的sellerId
+  const sellerIdMatch = location.pathname.match(/\/user\/profile\/(\d+)/)
+  const sellerId = sellerIdMatch ? sellerIdMatch[1] : null
+
+  if(sellerId){
+    console.log('卖家ID:', sellerId)
+  }
+  
+  if (location.pathname === '/user/register') {
+    setCurrentPage('register')
+  } else if (location.pathname === '/user/forgot-password') {
+    setCurrentPage('forgotPassword')
+  } else if (location.pathname === '/user/profile'|| location.pathname === '/user/profile/' + sellerId) {
+    // 进入个人中心时检查token
+    const token = localStorage.getItem('token')
+    if (!token) {
+      console.warn('未找到token，跳转到登录页')
+      message.error('请先登录')
+      navigate('/user')
+      return
+    }
     
-    if (location.pathname === '/user/register') {
-      setCurrentPage('register')
-    } else if (location.pathname === '/user/forgot-password') {
-      setCurrentPage('forgotPassword')
-    } else if (location.pathname === '/user/profile') {
-      // 进入个人中心时检查token
-      const token = localStorage.getItem('token')
-      if (!token) {
-        console.warn('未找到token，跳转到登录页')
-        message.error('请先登录')
-        navigate('/user')
-        return
-      }
+    // 根据是否包含sellerId设置页面类型
+    if (sellerId) {
+      console.log('进入卖家个人中心')
+      setCurrentPage('seller-profile')
+      // 获取卖家信息
+      fetchSellerProfile(sellerId)
+      // 获取用户商品
+      fetchUserGoods(goodsData.pageNum, goodsData.pageSize)
+      console.log('goodsData:', goodsData)
+    } else {
       setCurrentPage('profile')
       // 获取用户信息
       fetchUserProfile()
       // 获取用户商品
-      fetchUserGoods(1, goodsData.pageSize)
-    } else {
-      setCurrentPage('login')
+      fetchUserGoods(goodsData.pageNum, goodsData.pageSize)
+      console.log('goodsData:', goodsData)
     }
-  }, [location.pathname])
+  } else {
+    setCurrentPage('login')
+  }
+}, [location.pathname])
 
   // 检查用户是否被封禁
   const isUserBanned = userProfile?.creditScore ? userProfile.creditScore < BANNED_CREDIT_SCORE : false
 
-  // 获取用户近期商品
-  const fetchUserGoods = async (pageNum: number, pageSize: number) => {
-    setGoodsLoading(true)
+  // 获取卖家信息的函数
+  const fetchSellerProfile = async (sellerId: string) => {
     try {
-      const result = await http.get<{ code: number; message: string; data: PageInfo<Goods> }>(
-        `/user/recent-goods?pageNum=${pageNum}&pageSize=${pageSize}`
+      const result = await http.get<{ code: number; message: string; data: UserProfile }>(
+        `/user/profile/${sellerId}`
       )
       
       if (result.code === 200) {
-        setGoodsData(result.data)
-        console.log('获取用户商品成功:', result.data)
+        setUserProfile(result.data)
+        console.log('获取卖家信息成功:', result.data)
       } else {
-        console.error('获取用户商品失败:', result.message)
+        console.error('获取卖家信息失败:', result.message)
       }
     } catch (error) {
-      console.error('获取用户商品失败:', error)
-    } finally {
-      setGoodsLoading(false)
+      console.error('获取卖家信息失败:', error)
     }
   }
 
+  // 获取用户近期商品
+const fetchUserGoods = async (pageNum: number, pageSize: number) => {
+  setGoodsLoading(true)
+  try {
+    // 如果是商家主页，调用带sellerId的接口
+    const sellerIdMatch = location.pathname.match(/\/user\/profile\/(\d+)/)
+    const sellerId = sellerIdMatch ? sellerIdMatch[1] : null
+    let url = ''
+    // console.log('我还没失败')
+    // 根据当前页面类型选择不同的接口
+    if (!sellerId) {
+      // console.log('我还没失败')
+      // 用户个人中心，调用原接口
+      url = `/user/recent-goods?pageNum=${pageNum}&pageSize=${pageSize}`
+    } else if (sellerId) {
+      // console.log('桀桀桀桀桀桀eiejie')
+      url = `/user/recent-goods/${sellerId}?pageNum=${pageNum}&pageSize=${pageSize}`
+    } else {
+      // 添加默认情况处理，防止url为空
+      console.warn('未知的页面类型，返回首页')
+      url = '/'
+    }
+    // 添加url检查
+    if (!url) {
+      throw new Error('请求URL不能为空')
+    }
+    const result = await http.get<{ code: number; message: string; data: PageInfo<Goods> }>(url)
+    if (result.code === 200) {
+      setGoodsData(result.data)
+      console.log('获取用户商品成功:', result.data)
+    } else {
+      console.error('获取用户商品失败:', result.message)
+    }
+  } catch (error) {
+    console.error('获取用户商品失败:', error)
+  } finally {
+    setGoodsLoading(false)
+  }
+}
   // 处理分页变化
   const handlePageChange = (page: number, pageSize?: number) => {
     fetchUserGoods(page, pageSize || goodsData.pageSize)
   }
-
   // 格式化价格显示
   const formatPrice = (price: number) => {
     return `¥${price.toFixed(2)}`
   }
-
   // 格式化时间显示
   const formatTime = (timeString: string) => {
     return new Date(timeString).toLocaleDateString('zh-CN', {
@@ -168,7 +224,6 @@ const User: FC = () => {
       day: '2-digit'
     })
   }
-
   // 获取商品状态标签颜色
   const getGoodsStatusColor = (status: string) => {
     const statusMap: { [key: string]: string } = {
@@ -179,7 +234,6 @@ const User: FC = () => {
     }
     return statusMap[status] || 'default'
   }
-
   // 获取商品状态显示文本
   const getGoodsStatusText = (status: string) => {
     const statusMap: { [key: string]: string } = {
@@ -392,39 +446,41 @@ const User: FC = () => {
   }
 
   // 个人中心页面
-  if (currentPage === 'profile') {
-    if (!userProfile) {
-      return (
-        <SystemLayoutNoBackground>
-          <div className="user-profile-container">
-            <Card title="个人中心" className="profile-card">
-              <div style={{ textAlign: 'center', padding: '40px' }}>
-                <div>加载中...</div>
-              </div>
-            </Card>
-          </div>
-        </SystemLayoutNoBackground>
-      )
-    }
-
+  if (currentPage === 'profile' || currentPage === 'seller-profile') {
+  if (!userProfile) {
     return (
       <SystemLayoutNoBackground>
         <div className="user-profile-container">
-          <Card
-            title="个人中心"
-            className="profile-card"
-            extra={
-              !isEditing && !isUserBanned ? (
-                <Button
-                  type="primary"
-                  icon={<EditOutlined />}
-                  onClick={handleEditProfile}
-                  loading={loading}
-                >
-                  编辑信息
-                </Button>
-              ) : null
-            }
+          <Card title="加载中..." className="profile-card">
+            <div style={{ textAlign: 'center', padding: '40px' }}>
+              <div>加载中...</div>
+            </div>
+          </Card>
+        </div>
+      </SystemLayoutNoBackground>
+    )
+  }
+
+  return (
+    <SystemLayoutNoBackground>
+      <div className="user-profile-container">
+        <Card
+          className="profile-card"
+          title={currentPage === 'seller-profile' ? '卖家中心' : '个人中心'}
+          extra={
+            currentPage === 'seller-profile'
+              ? null
+              : !isEditing && !isUserBanned ? (
+                  <Button
+                    type="primary"
+                    icon={<EditOutlined />}
+                    onClick={handleEditProfile}
+                    loading={loading}
+                  >
+                    编辑信息
+                  </Button>
+                ) : null
+          }
           >
             {isUserBanned && (
               <Alert
@@ -463,42 +519,46 @@ const User: FC = () => {
 
                 <Divider />
 
-                <Descriptions column={1} bordered className="profile-details">
-                  <Descriptions.Item label="用户ID">{userProfile.userId}</Descriptions.Item>
-                  <Descriptions.Item label="用户名">{userProfile.username}</Descriptions.Item>
-                  <Descriptions.Item label="邮箱">{userProfile.email}</Descriptions.Item>
-                  <Descriptions.Item label="手机号">{userProfile.phoneNumber}</Descriptions.Item>
-                  <Descriptions.Item label="真实姓名">{userProfile.realName}</Descriptions.Item>
-                  <Descriptions.Item label="学号">{userProfile.schoolId}</Descriptions.Item>
-                  <Descriptions.Item label="注册时间">{userProfile.created_at}</Descriptions.Item>
-                  <Descriptions.Item label="信用状态">
-                    <Tag color={getCreditScoreColor(userProfile.creditScore)}>
-                      {userProfile.creditScore}分 - {getCreditScoreStatus(userProfile.creditScore)}
-                      {isUserBanned && ' (已封禁)'}
-                    </Tag>
-                  </Descriptions.Item>
-                </Descriptions>
+                 {/* 用户信息详情展示 */}
+                  {currentPage === 'profile' && (
+                    <Descriptions column={1} bordered className="profile-details">
+                      <Descriptions.Item label="用户ID">{userProfile.userId}</Descriptions.Item>
+                      <Descriptions.Item label="用户名">{userProfile.username}</Descriptions.Item>
+                      <Descriptions.Item label="邮箱">{userProfile.email}</Descriptions.Item>
+                      <Descriptions.Item label="手机号">{userProfile.phoneNumber}</Descriptions.Item>
+                      <Descriptions.Item label="真实姓名">{userProfile.realName}</Descriptions.Item>
+                      <Descriptions.Item label="学号">{userProfile.schoolId}</Descriptions.Item>
+                      <Descriptions.Item label="注册时间">{userProfile.created_at}</Descriptions.Item>
+                      <Descriptions.Item label="信用状态">
+                        <Tag color={getCreditScoreColor(userProfile.creditScore)}>
+                          {userProfile.creditScore}分 - {getCreditScoreStatus(userProfile.creditScore)}
+                          {isUserBanned && ' (已封禁)'}
+                        </Tag>
+                      </Descriptions.Item>
+                    </Descriptions>
+                  )}
 
-                <div className="profile-actions">
-                  <Button 
-                    type="primary" 
-                    onClick={() => navigate('/user/forgot-password')}
-                    className="change-password-btn"
-                    disabled={isUserBanned}
-                    loading={loading}
-                  >
-                    修改密码
-                  </Button>
-                  <Button onClick={handleLogout} loading={loading}>
-                    退出登录
-                  </Button>
-                  <Button onClick={() => navigate('/')}>
-                    返回首页
-                  </Button>
-                </div>
+                   {/* 用户操作按钮 */}
+                  {currentPage === 'profile' && (
+                    <div className="profile-actions">
+                      <Button 
+                        type="primary" 
+                        onClick={() => navigate('/user/forgot-password')}
+                        className="change-password-btn"
+                        disabled={isUserBanned}
+                        loading={loading}
+                      >
+                        修改密码
+                      </Button>
+                      <Button onClick={handleLogout} loading={loading}>
+                        退出登录
+                      </Button>
+                      <Button onClick={() => navigate('/')}>
+                        返回首页
+                      </Button>
+                    </div>
+                  )}
                 <Divider />
-
-                
                 
                 {/* 用户近期商品展示模块 */}
                 <div className="recent-goods-section">
@@ -592,7 +652,6 @@ const User: FC = () => {
                           </List.Item>
                         )}
                       />
-                      
                       {/* 分页组件 */}
                       {goodsData.pages > 1 && (
                         <div style={{ textAlign: 'center', marginTop: 24 }}>

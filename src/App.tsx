@@ -26,6 +26,7 @@ function App() {
           <Route element={<User />} path="/user/register" />
           <Route element={<User />} path="/user/forgot-password" />
           <Route element={<User />} path="/user/profile" />
+          <Route element={<User />} path="/user/profile/:id" />
           
           <Route element={<Feedback />} path="feedback" />
           <Route element={<Feedback />} path="feedback/:tradeId" />

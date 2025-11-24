@@ -17,7 +17,7 @@ const request: AxiosInstance = axios.create({
 request.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem('token');
-    console.log('请求拦截器 - 当前token:', token);
+    // console.log('请求拦截器 - 当前token:', token);
     console.log('请求完整URL:', config.url);
     
     if (token) {
