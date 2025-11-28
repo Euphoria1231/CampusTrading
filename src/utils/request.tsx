@@ -13,11 +13,16 @@ const request: AxiosInstance = axios.create({
   timeout: 10000,
 });
 
+// 使用unload事件 在刷新页面时移除token
+window.addEventListener('unload', () => {
+  localStorage.removeItem('token');
+});
+
 // 请求拦截器
 request.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem('token');
-    console.log('请求拦截器 - 当前token:', token);
+    // console.log('请求拦截器 - 当前token:', token);
     console.log('请求完整URL:', config.url);
     
     if (token) {

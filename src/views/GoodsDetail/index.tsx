@@ -90,11 +90,12 @@ const GoodsDetail: FC = () => {
   const handleViewSellerProfile = () => {
     const sellerId = detailData?.goods?.sellerId
     if (sellerId) {
-      // TODO: 跳转到卖家个人空间页面，由用户管理模块实现
-      message.info(`准备查看卖家主页 ID: ${sellerId}，此功能由用户管理模块实现`)
-      // navigate(`/user/profile/${sellerId}`)
+      // 跳转到卖家个人空间页面
+      navigate(`/user/profile/${sellerId}`)
+    } else {
+      console.log('无法获取卖家信息');
     }
-  }
+  };
 
   // 查看近期评价
   const handleViewReviews = () => {

@@ -11,7 +11,7 @@ import GoodsCreate from "./views/GoodsCreate"
 import GoodsEdit from "./views/GoodsEdit"
 import GoodsDetail from "./views/GoodsDetail"
 import Reviews from "./views/Reviews"
-
+import SellerProfile from "./views/SellerProfile"
 function App() {
   return (
     <UserProvider>
@@ -26,6 +26,8 @@ function App() {
           <Route element={<User />} path="/user/forgot-password" />
           <Route element={<User />} path="/user/profile" />
 
+          <Route element={<SellerProfile />} path="/user/profile/:sellerId" />
+          
           <Route element={<Feedback />} path="feedback" />
           <Route element={<Feedback />} path="feedback/:tradeId" />
           <Route element={<Connection />} path="connection" />
