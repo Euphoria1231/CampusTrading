@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import SystemLayoutNoBackground from "@/components/SystemLayout/SystemLayoutNoBackground"
 import type { FC } from "react"
 import { Form, Input, Button, Card, message, Avatar, Descriptions, Tag, Divider, Alert, Steps, notification, List, Image, Pagination, Typography, Space } from "antd"

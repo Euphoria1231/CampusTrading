@@ -1,6 +1,5 @@
 .goods-browse-container {
   padding: 24px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   min-height: 100vh;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 
@@ -68,6 +67,131 @@
 
     &:hover {
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    }
+
+    // 自定义搜索框样式
+    .custom-search {
+      display: flex;
+      align-items: center;
+      position: relative;
+      width: 100%;
+      border-radius: 12px;
+      border: 2px solid #e8f4fd;
+      background: rgba(255, 255, 255, 0.8);
+      transition: all 0.3s ease;
+      overflow: hidden;
+
+      &:hover {
+        border-color: #40a9ff;
+      }
+
+      &:focus-within {
+        border-color: #1890ff;
+        box-shadow: 0 0 0 3px rgba(24, 144, 255, 0.1);
+        background: white;
+      }
+
+      .custom-search-input {
+        flex: 1;
+        border: none;
+        outline: none;
+        padding: 0 16px;
+        font-size: 16px;
+        background: transparent;
+        color: #1a1a1a;
+        height: 100%;
+
+        &::placeholder {
+          color: #bfbfbf;
+        }
+      }
+
+      .custom-search-clear {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        cursor: pointer;
+        color: #bfbfbf;
+        transition: all 0.3s ease;
+        margin-right: 8px;
+
+        &:hover {
+          color: #1890ff;
+          transform: scale(1.1);
+        }
+      }
+
+      .custom-search-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
+        border: none;
+        border-radius: 0;
+        height: 100%;
+        width: 60px;
+        cursor: pointer;
+        color: white;
+        font-size: 18px;
+        transition: all 0.3s ease;
+        padding: 0;
+
+        &:hover {
+          background: linear-gradient(135deg, #40a9ff 0%, #1890ff 100%);
+          transform: scale(1.05);
+        }
+
+        &:active {
+          transform: scale(0.98);
+        }
+      }
+
+      &.custom-search-small {
+        height: 32px;
+        font-size: 14px;
+
+        .custom-search-input {
+          font-size: 14px;
+          padding: 0 12px;
+        }
+
+        .custom-search-button {
+          width: 48px;
+          font-size: 16px;
+        }
+      }
+
+      &.custom-search-middle {
+        height: 40px;
+        font-size: 15px;
+
+        .custom-search-input {
+          font-size: 15px;
+          padding: 0 14px;
+        }
+
+        .custom-search-button {
+          width: 54px;
+          font-size: 17px;
+        }
+      }
+
+      &.custom-search-large {
+        height: 48px;
+        font-size: 16px;
+
+        .custom-search-input {
+          font-size: 16px;
+          padding: 0 16px;
+        }
+
+        .custom-search-button {
+          width: 60px;
+          font-size: 18px;
+        }
+      }
     }
 
     .ant-input-search {
@@ -157,7 +281,7 @@
     .loading-container {
       text-align: center;
       padding: 60px 0;
-      
+
       .loading-text {
         font-size: 16px;
         color: #666;
@@ -190,7 +314,7 @@
     &:hover {
       transform: translateY(-8px) scale(1.02);
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-      
+
       &::before {
         opacity: 1;
       }
@@ -515,4 +639,3 @@
     }
   }
 }
-

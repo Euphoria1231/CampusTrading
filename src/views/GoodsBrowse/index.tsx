@@ -1,8 +1,8 @@
 import SystemLayoutNoBackground from "@/components/SystemLayout/SystemLayoutNoBackground"
-import { Button, Card, message, Space, Popconfirm, Tag, Image, Row, Col, Empty, Input, Select, Tabs, Divider, Skeleton } from "antd"
-import { EditOutlined, DeleteOutlined, PlusOutlined, EyeOutlined, SearchOutlined, FilterOutlined } from "@ant-design/icons"
+import { Button, Card, message, Space, Popconfirm, Tag, Image, Row, Col, Empty, Select, Divider, Skeleton } from "antd"
+import { EditOutlined, DeleteOutlined, PlusOutlined, EyeOutlined, SearchOutlined, CloseCircleOutlined } from "@ant-design/icons"
 import type { FC } from "react"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
 import { http } from "@/utils/request"
 import './index.less'
@@ -24,7 +24,81 @@ interface Goods {
   updateTime?: string
 }
 
-const { Search } = Input
+interface CustomSearchProps {
+  placeholder?: string
+  allowClear?: boolean
+  enterButton?: React.ReactNode
+  size?: 'small' | 'middle' | 'large'
+  onSearch?: (value: string) => void
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
+  value?: string
+}
+
+const CustomSearch: FC<CustomSearchProps> = ({
+  placeholder = '请输入搜索内容',
+  allowClear = false,
+  enterButton,
+  size = 'middle',
+  onSearch,
+  onChange,
+  value
+}) => {
+  const [inputValue, setInputValue] = useState(value || '')
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (value !== undefined) {
+      setInputValue(value)
+    }
+  }, [value])
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value
+    setInputValue(newValue)
+    onChange?.(e)
+  }
+
+  const handleClear = () => {
+    setInputValue('')
+    onChange?.({ target: { value: '' } } as React.ChangeEvent<HTMLInputElement>)
+    inputRef.current?.focus()
+  }
+
+  const handleSearch = () => {
+    onSearch?.(inputValue)
+  }
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSearch()
+    }
+  }
+
+  const sizeClass = `custom-search-${size}`
+
+  return (
+    <div className={`custom-search ${sizeClass}`}>
+      <input
+        ref={inputRef}
+        type="text"
+        className="custom-search-input"
+        placeholder={placeholder}
+        value={inputValue}
+        onChange={handleChange}
+        onKeyPress={handleKeyPress}
+      />
+      {allowClear && inputValue && (
+        <span className="custom-search-clear" onClick={handleClear}>
+          <CloseCircleOutlined />
+        </span>
+      )}
+      <button className="custom-search-button" onClick={handleSearch}>
+        {enterButton || <SearchOutlined />}
+      </button>
+    </div>
+  )
+}
+
 const { Option } = Select
 
 const GoodsBrowse: FC = () => {
@@ -66,7 +140,7 @@ const GoodsBrowse: FC = () => {
       } else {
         message.error(result.message)
       }
-    } catch (error) {
+    } catch {
       message.error('获取商品列表失败')
     } finally {
       setLoading(false)
@@ -74,7 +148,7 @@ const GoodsBrowse: FC = () => {
   }
 
   // 搜索和筛选商品
-  const filterAndSortGoods = () => {
+  const filterAndSortGoods = useCallback(() => {
     let filtered = [...goodsList]
 
     // 按分类筛选
@@ -85,7 +159,7 @@ const GoodsBrowse: FC = () => {
     // 按关键词搜索
     if (searchKeyword.trim()) {
       const keyword = searchKeyword.toLowerCase()
-      filtered = filtered.filter(goods => 
+      filtered = filtered.filter(goods =>
         goods.name.toLowerCase().includes(keyword) ||
         goods.description.toLowerCase().includes(keyword)
       )
@@ -93,7 +167,8 @@ const GoodsBrowse: FC = () => {
 
     // 排序
     filtered.sort((a, b) => {
-      let aValue: any, bValue: any
+      let aValue: string | number
+      let bValue: string | number
 
       switch (sortBy) {
         case 'price':
@@ -119,7 +194,7 @@ const GoodsBrowse: FC = () => {
     })
 
     setFilteredGoodsList(filtered)
-  }
+  }, [goodsList, selectedCategory, searchKeyword, sortBy, sortOrder])
 
   // 处理搜索
   const handleSearch = (value: string) => {
@@ -149,7 +224,7 @@ const GoodsBrowse: FC = () => {
       navigate('/user')
       return
     }
-    
+
     try {
       const result = await http.delete<{ code: number; message: string }>(`/goods/${id}`)
       if (result.code === 200) {
@@ -158,7 +233,7 @@ const GoodsBrowse: FC = () => {
       } else {
         message.error(result.message)
       }
-    } catch (error) {
+    } catch {
       message.error('删除失败')
     }
   }
@@ -197,14 +272,14 @@ const GoodsBrowse: FC = () => {
   // 当筛选条件改变时，重新筛选和排序
   useEffect(() => {
     filterAndSortGoods()
-  }, [searchKeyword, selectedCategory, sortBy, sortOrder, goodsList])
+  }, [filterAndSortGoods])
 
   // 渲染骨架屏
   const renderSkeletonCard = () => (
     <Col xs={24} sm={12} md={8} lg={6} xl={4}>
       <Card className="goods-card">
-        <Skeleton.Image 
-          active 
+        <Skeleton.Image
+          active
           style={{ width: '100%', height: '220px' }}
         />
         <div style={{ padding: '20px' }}>
@@ -349,13 +424,14 @@ const GoodsBrowse: FC = () => {
         <div className="goods-browse-filters">
           <Row gutter={[16, 16]} align="middle">
             <Col xs={24} sm={12} md={8}>
-              <Search
+              <CustomSearch
                 placeholder="搜索商品名称或描述"
                 allowClear
                 enterButton={<SearchOutlined />}
                 size="large"
                 onSearch={handleSearch}
                 onChange={(e) => setSearchKeyword(e.target.value)}
+                value={searchKeyword}
               />
             </Col>
             <Col xs={24} sm={12} md={8}>
@@ -419,8 +495,8 @@ const GoodsBrowse: FC = () => {
               </Row>
             </>
           ) : filteredGoodsList.length === 0 ? (
-            <Empty 
-              description={searchKeyword || selectedCategory !== 'all' ? "没有找到符合条件的商品" : "暂无商品数据"} 
+            <Empty
+              description={searchKeyword || selectedCategory !== 'all' ? "没有找到符合条件的商品" : "暂无商品数据"}
               image={Empty.PRESENTED_IMAGE_SIMPLE}
             />
           ) : (

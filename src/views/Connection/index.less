@@ -1,6 +1,6 @@
 .connection-container {
   width: 100%;
-  height: 100vh;
+  height: 90vh;
   display: flex;
   flex-direction: column;
   padding: 20px;
@@ -95,6 +95,7 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
+  overflow-y: auto;
 }
 
 .chat-window-footer {
@@ -134,21 +135,5 @@
 // 滚动条样式
 .conversation-list::-webkit-scrollbar,
 .chat-window-body::-webkit-scrollbar {
-  width: 6px;
-}
-
-.conversation-list::-webkit-scrollbar-track,
-.chat-window-body::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 3px;
-}
-
-.conversation-list::-webkit-scrollbar-thumb,
-.chat-window-body::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 3px;
-
-  &:hover {
-    background: #a8a8a8;
-  }
+  display: none;
 }
