@@ -86,16 +86,15 @@ const GoodsDetail: FC = () => {
   }
 
   // 查看卖家主页
-  // GoodsDetail/index.tsx
-const handleViewSellerProfile = () => {
-  const sellerId = detailData?.goods?.sellerId;
-  if (sellerId) {
-    // 使用 navigate 跳转到卖家主页（带 userId 参数）
-    navigate(`/user/profile/${sellerId}`);
-  } else {
-    console.log('无法获取卖家信息');
-  }
-};
+  const handleViewSellerProfile = () => {
+    const sellerId = detailData?.goods?.sellerId
+    if (sellerId) {
+      // 跳转到卖家个人空间页面
+      navigate(`/user/profile/${sellerId}`)
+    } else {
+      console.log('无法获取卖家信息');
+    }
+  };
 
   // 查看近期评价
   const handleViewReviews = () => {

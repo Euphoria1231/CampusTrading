@@ -10,6 +10,7 @@ import GoodsCreate from "./views/GoodsCreate"
 import GoodsEdit from "./views/GoodsEdit"
 import GoodsDetail from "./views/GoodsDetail"
 import Reviews from "./views/Reviews"
+import SellerProfile from "./views/SellerProfile"
 function App() {
 
   return (
@@ -26,7 +27,7 @@ function App() {
           <Route element={<User />} path="/user/register" />
           <Route element={<User />} path="/user/forgot-password" />
           <Route element={<User />} path="/user/profile" />
-          <Route element={<User />} path="/user/profile/:id" />
+          <Route element={<SellerProfile />} path="/user/profile/:sellerId" />
           
           <Route element={<Feedback />} path="feedback" />
           <Route element={<Feedback />} path="feedback/:tradeId" />
