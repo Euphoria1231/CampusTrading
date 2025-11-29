@@ -80,7 +80,7 @@ const getTrades = async (params?: {
   status?: string;
 }): Promise<{ trades: Trade[], total: number }> => {
   const token = localStorage.getItem('token');
-  
+
   console.log(`GET /api/trades`, { token });
   const requestParams = {
     page: params?.page,
@@ -112,7 +112,7 @@ const getTrades = async (params?: {
 // 获取交易详情
 const getTradeById = async (id: number): Promise<Trade> => {
   const token = localStorage.getItem('token');
-  
+
   const res = await axios.get(`/api/trades/${id}`, {
     headers: {
       'token': token || ''
@@ -124,27 +124,27 @@ const getTradeById = async (id: number): Promise<Trade> => {
 // 更新交易状态
 const updateTradeStatus = async (id: number, status: string): Promise<Trade> => {
   const token = localStorage.getItem('token');
-  
+
   // 确保 status 不为空
   if (!status) {
     throw new Error('状态不能为空');
   }
-  
+
   console.log(`📤 发送请求: POST /api/trades/${id}`, { status });
-  
+
   const res = await axios.post(`/api/trades/${id}`, { status }, {
     headers: {
       'token': token || '',
       'Content-Type': 'application/json'
     }
   });
-  
+
   console.log(`📥 接收响应:`, res.data);
   return convertTrade(res.data.data);
 };// 提交举报
 const submitReport = async (reportData: ReportFormData): Promise<void> => {
   const token = localStorage.getItem('token');
-  
+
   await axios.post("/api/evaluation/report", reportData, {
     headers: {
       'token': token || ''
@@ -161,12 +161,12 @@ interface ReportModalProps {
   tradeId: number;
 }
 
-const ReportModal: FC<ReportModalProps> = ({ 
-  isOpen, 
-  onClose, 
-  onSubmit, 
-  sellerId, 
-  tradeId 
+const ReportModal: FC<ReportModalProps> = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  sellerId,
+  tradeId
 }) => {
   const [reason, setReason] = useState<string>("");
 
@@ -176,13 +176,13 @@ const ReportModal: FC<ReportModalProps> = ({
       alert("请输入举报原因");
       return;
     }
-    
+
     onSubmit({
       reason: reason.trim(),
       sellerId,
       tradeId
     });
-    
+
     // 重置表单
     setReason("");
   };
@@ -210,11 +210,11 @@ const ReportModal: FC<ReportModalProps> = ({
               required
             />
           </div>
-          
+
           <div className="form-info">
             <p><strong>交易订单号:</strong> {tradeId}</p>
           </div>
-          
+
           <div className="form-actions">
             <button type="button" onClick={handleCancel}>取消</button>
             <button type="submit">提交举报</button>
@@ -357,7 +357,7 @@ const TradeDetailPage: FC<{ id: string }> = ({ id }) => {
   const [showReportModal, setShowReportModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const navigate = useNavigate();
-  
+
   // 获取当前用户ID
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 
@@ -397,7 +397,7 @@ const TradeDetailPage: FC<{ id: string }> = ({ id }) => {
 
   const handleAccept = async () => {
     if (!trade || trade.status !== "PENDING") return;
-    
+
     // 检查权限：只有卖家才能接受交易
     if (currentUserId !== trade.seller_id) {
       alert('只有卖家才能接受交易！');
@@ -406,21 +406,21 @@ const TradeDetailPage: FC<{ id: string }> = ({ id }) => {
 
     // 防止重复点击
     if (isProcessing) return;
-    
+
     setIsProcessing(true);
 
     try {
       console.log(`🔄 正在接受交易 ${trade.id}...`);
       const updated = await updateTradeStatus(trade.id, "ACCEPTED");
       console.log(`✅ 交易接受成功:`, updated);
-      
+
       // 正确更新状态
       setTrade(updated);
       alert("交易已接受！");
-      
+
     } catch (err: any) {
       console.error("❌ 接受交易失败:", err);
-      
+
       // 详细打印 Axios 错误信息
       if (err.isAxiosError) {
         console.error("🔍 Axios 错误详情:");
@@ -431,10 +431,10 @@ const TradeDetailPage: FC<{ id: string }> = ({ id }) => {
         console.error("请求方法:", err.config?.method);
         console.error("请求数据:", err.config?.data);
       }
-      
+
       // 提供更详细的错误信息
       let errorMessage = "未知错误";
-      
+
       if (err.response?.status === 403) {
         errorMessage = "权限不足，无法操作此交易";
       } else if (err.response?.status === 404) {
@@ -446,9 +446,9 @@ const TradeDetailPage: FC<{ id: string }> = ({ id }) => {
       } else if (err.message) {
         errorMessage = err.message;
       }
-      
+
       alert(`操作失败: ${errorMessage}`);
-      
+
     } finally {
       // 重要：无论成功失败都要重置处理状态
       setIsProcessing(false);
@@ -477,33 +477,33 @@ const TradeDetailPage: FC<{ id: string }> = ({ id }) => {
       <div className="action-buttons">
         {/* 卖家操作：接受交易 */}
         {isSeller && trade.status === "PENDING" && (
-          <button 
-            onClick={handleAccept} 
+          <button
+            onClick={handleAccept}
             className="accept-button"
             disabled={isProcessing}
           >
             {isProcessing ? "处理中..." : "接受交易"}
           </button>
         )}
-        
+
         {/* 买家操作：交易完成后显示评价和举报 */}
         {isBuyer && (trade.status === "ACCEPTED" || trade.status === "COMPLETED") && (
           <>
-            <button 
-              onClick={() => navigate(`/feedback/${trade.id}`)} 
+            <button
+              onClick={() => navigate(`/reviews/goods/${trade.product_id}?orderId=${trade.id}&revieweeId=${trade.seller_id}`)}
               className="evaluate-button"
             >
               评价
             </button>
-            <button 
-              onClick={() => setShowReportModal(true)} 
+            <button
+              onClick={() => setShowReportModal(true)}
               className="report-button"
             >
               举报
             </button>
           </>
         )}
-        
+
         {/* 卖家交易完成后不显示任何操作按钮 */}
         {isSeller && (trade.status === "ACCEPTED" || trade.status === "COMPLETED") && (
           <div className="no-actions">
@@ -540,7 +540,7 @@ const TradeDetailPage: FC<{ id: string }> = ({ id }) => {
           <h2>交易详情</h2>
           <span className={`status-badge ${status.toLowerCase()}`}>{status}</span>
         </div>
-        
+
         {/* 显示当前用户角色 */}
         <div className="user-role-info">
           {currentUserId && (
@@ -549,7 +549,7 @@ const TradeDetailPage: FC<{ id: string }> = ({ id }) => {
             </p>
           )}
         </div>
-        
+
         <div className="product-info">
           <img
             src={product_snapshot.image || ""}
@@ -574,7 +574,7 @@ const TradeDetailPage: FC<{ id: string }> = ({ id }) => {
             </p>
           </div>
         </div>
-        
+
         {/* 使用新的操作按钮渲染函数 */}
         {renderActionButtons()}
       </div>

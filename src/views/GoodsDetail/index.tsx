@@ -47,7 +47,7 @@ const GoodsDetail: FC = () => {
   // 获取商品详情
   const fetchGoodsDetail = async () => {
     if (!id) return
-    
+
     setLoading(true)
     try {
       const result = await http.get<{ code: number; message: string; data: GoodsDetailData }>(`/goods/${id}`)
@@ -64,13 +64,14 @@ const GoodsDetail: FC = () => {
       setLoading(false)
     }
   }
-  
+
   // 联系卖家
   const handleContactSeller = () => {
     const sellerId = detailData?.goods?.sellerId
-    if (sellerId) {
-      // 跳转到消息通讯页面，传递sellerId
-      navigate(`/connection/${sellerId}`)
+    const productId = detailData?.goods?.id
+    if (sellerId && productId) {
+      // 跳转到消息通讯页面，传递sellerId和productId
+      navigate(`/connection/${sellerId}?productId=${productId}`)
       message.success('正在跳转到聊天页面...')
     }
   }
@@ -222,7 +223,7 @@ const GoodsDetail: FC = () => {
       </SystemLayoutNoBackground>
     )
   }
-  
+
   const { goods, seller } = detailData
 
   return (
@@ -299,9 +300,9 @@ const GoodsDetail: FC = () => {
                   <Title level={5} className="section-title">商品描述</Title>
                   <Text className="description-text">{goods.description}</Text>
                 </div>
-                
+
                 <Divider />
-                
+
                 {/* 卖家信息 */}
                 {seller && (
                   <div className="seller-info">
@@ -323,6 +324,7 @@ const GoodsDetail: FC = () => {
                         </div>
                       </div>
                       <Space direction="vertical" size="small" style={{ width: '100%' }}>
+<<<<<<< HEAD
                         <Button 
                           type="primary" 
                           icon={<ShoppingCartOutlined />}
@@ -335,6 +337,10 @@ const GoodsDetail: FC = () => {
                           {goods.status === 'ACTIVE' ? '立即购买' : '商品已下架'}
                         </Button>
                         <Button 
+=======
+                        <Button
+                          type="primary"
+>>>>>>> 826fb30ba4934b2a72873855dbd5d925a42cc979
                           icon={<PhoneOutlined />}
                           onClick={handleContactSeller}
                           className="contact-button"
@@ -343,14 +349,14 @@ const GoodsDetail: FC = () => {
                           联系卖家
                         </Button>
                         <Space style={{ width: '100%' }}>
-                          <Button 
+                          <Button
                             icon={<HomeOutlined />}
                             onClick={handleViewSellerProfile}
                             style={{ flex: 1 }}
                           >
                             卖家主页
                           </Button>
-                          <Button 
+                          <Button
                             icon={<StarOutlined />}
                             onClick={handleViewReviews}
                             style={{ flex: 1 }}
@@ -378,7 +384,7 @@ const GoodsDetail: FC = () => {
                         </div>
                       </div>
                     )}
-                    
+
                     {goods.tradeLocation && (
                       <div className="trade-item">
                         <EnvironmentOutlined className="trade-icon" />
@@ -388,7 +394,7 @@ const GoodsDetail: FC = () => {
                         </div>
                       </div>
                     )}
-                    
+
                     {goods.contactPhone && (
                       <div className="trade-item">
                         <PhoneOutlined className="trade-icon" />

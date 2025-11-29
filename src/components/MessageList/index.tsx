@@ -1,4 +1,4 @@
-import { Avatar, List, Typography, Empty } from 'antd'
+import { Avatar, Typography, Empty } from 'antd'
 import { UserOutlined } from '@ant-design/icons'
 import type { FC } from 'react'
 import './index.less'
@@ -31,13 +31,15 @@ const MessageList: FC<MessageListProps> = ({ messages }) => {
 
   return (
     <div className="message-list-container">
-      <List
-        dataSource={messages}
-        renderItem={(message) => (
-          <List.Item className={`message-item ${message.isOwn ? 'own' : 'other'}`}>
+      <div className="message-list-wrapper">
+        {messages.map((message) => (
+          <div
+            key={message.id}
+            className={`message-item ${message.isOwn ? 'own' : 'other'}`}
+          >
             <div className="message-bubble">
               {!message.isOwn && (
-                <div className='message-bubble-client'>
+                <div className="message-bubble-client">
                   <Avatar
                     size={36}
                     icon={<UserOutlined />}
@@ -71,9 +73,9 @@ const MessageList: FC<MessageListProps> = ({ messages }) => {
                 </div>
               )}
             </div>
-          </List.Item>
-        )}
-      />
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

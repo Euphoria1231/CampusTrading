@@ -42,7 +42,6 @@ const SystemLayoutNoBackground: FC<SystemLayoutProps> = ({ children, onScroll })
           className="system-header-nav-item"
         >
           <span>{localStorage.getItem('token') ? '个人中心' : '登录/注册'}</span>
-          <Image className='system-header-nav-item-avatar' src={avatar} preview={false} />
         </div>
           <div className="system-header-nav-item">
             <ToggleStyleContainer />
