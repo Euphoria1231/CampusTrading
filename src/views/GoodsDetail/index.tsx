@@ -154,7 +154,6 @@ const GoodsDetail: FC = () => {
         image_url: goods.imageUrl || '',
         trade_localtion: goods.tradeLocation || '待协商',
         seller_id: goods.sellerId,
-        //buyer_id: Number(currentUserId)
       }
 
       console.log('📤 发送交易请求:', tradeData)

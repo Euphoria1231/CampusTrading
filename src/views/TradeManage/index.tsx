@@ -530,6 +530,7 @@ const TradeDetailPage: FC<{ id: string }> = ({ id }) => {
     created_at,
     shipping_address,
     seller_id,
+    buyer_id, // 解构买家ID
     id: tradeId
   } = trade;
 
@@ -550,6 +551,18 @@ const TradeDetailPage: FC<{ id: string }> = ({ id }) => {
           )}
         </div>
 
+        {/* 新增：买家ID和卖家ID展示区域 */}
+        <div className="user-ids-section">
+          <div className="user-id-item">
+            <span className="label">买家ID：</span>
+            <span className="value">{buyer_id}</span>
+          </div>
+          <div className="user-id-item">
+            <span className="label">卖家ID：</span>
+            <span className="value">{seller_id}</span>
+          </div>
+        </div>
+
         <div className="product-info">
           <img
             src={product_snapshot.image || ""}
@@ -562,6 +575,7 @@ const TradeDetailPage: FC<{ id: string }> = ({ id }) => {
             <p>总价: ¥{total_amount.toFixed(2)}</p>
           </div>
         </div>
+        
         <div className="trade-meta">
           <div className="meta-item">
             <p>
