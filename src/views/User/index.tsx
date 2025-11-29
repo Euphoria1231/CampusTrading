@@ -6,6 +6,7 @@ import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined, IdcardOutlined
 import { useNavigate, useLocation } from "react-router-dom"
 import { useEffect, useState } from "react"
 import { http } from "@/utils/request"
+import { saveUser } from "@/utils/storage"
 import './index.less'
 
 const { Text, Title } = Typography
@@ -83,10 +84,10 @@ const User: FC = () => {
   const [userInfo, setUserInfo] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [goodsLoading, setGoodsLoading] = useState(false)
-  
+
   // 用户数据
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
-  
+
   // 商品数据
   const [goodsData, setGoodsData] = useState<PageInfo<Goods>>({
     list: [],
@@ -101,53 +102,53 @@ const User: FC = () => {
 
   // 根据路由判断当前页面
   // 修改 useEffect 钩子，添加卖家ID路由判断
-useEffect(() => {
-  console.log('路由变化:', location.pathname)
-  // console.log('当前token:', localStorage.getItem('token'))
-  
-  // 提取路径中的sellerId
-  const sellerIdMatch = location.pathname.match(/\/user\/profile\/(\d+)/)
-  const sellerId = sellerIdMatch ? sellerIdMatch[1] : null
+  useEffect(() => {
+    console.log('路由变化:', location.pathname)
+    // console.log('当前token:', localStorage.getItem('token'))
 
-  if(sellerId){
-    console.log('卖家ID:', sellerId)
-  }
-  
-  if (location.pathname === '/user/register') {
-    setCurrentPage('register')
-  } else if (location.pathname === '/user/forgot-password') {
-    setCurrentPage('forgotPassword')
-  } else if (location.pathname === '/user/profile'|| location.pathname === '/user/profile/' + sellerId) {
-    // 进入个人中心时检查token
-    const token = localStorage.getItem('token')
-    if (!token) {
-      console.warn('未找到token，跳转到登录页')
-      message.error('请先登录')
-      navigate('/user')
-      return
-    }
-    
-    // 根据是否包含sellerId设置页面类型
+    // 提取路径中的sellerId
+    const sellerIdMatch = location.pathname.match(/\/user\/profile\/(\d+)/)
+    const sellerId = sellerIdMatch ? sellerIdMatch[1] : null
+
     if (sellerId) {
-      console.log('进入卖家个人中心')
-      setCurrentPage('seller-profile')
-      // 获取卖家信息
-      fetchSellerProfile(sellerId)
-      // 获取用户商品
-      fetchUserGoods(goodsData.pageNum, goodsData.pageSize)
-      console.log('goodsData:', goodsData)
-    } else {
-      setCurrentPage('profile')
-      // 获取用户信息
-      fetchUserProfile()
-      // 获取用户商品
-      fetchUserGoods(goodsData.pageNum, goodsData.pageSize)
-      console.log('goodsData:', goodsData)
+      console.log('卖家ID:', sellerId)
     }
-  } else {
-    setCurrentPage('login')
-  }
-}, [location.pathname])
+
+    if (location.pathname === '/user/register') {
+      setCurrentPage('register')
+    } else if (location.pathname === '/user/forgot-password') {
+      setCurrentPage('forgotPassword')
+    } else if (location.pathname === '/user/profile' || location.pathname === '/user/profile/' + sellerId) {
+      // 进入个人中心时检查token
+      const token = localStorage.getItem('token')
+      if (!token) {
+        console.warn('未找到token，跳转到登录页')
+        message.error('请先登录')
+        navigate('/user')
+        return
+      }
+
+      // 根据是否包含sellerId设置页面类型
+      if (sellerId) {
+        console.log('进入卖家个人中心')
+        setCurrentPage('seller-profile')
+        // 获取卖家信息
+        fetchSellerProfile(sellerId)
+        // 获取用户商品
+        fetchUserGoods(goodsData.pageNum, goodsData.pageSize)
+        console.log('goodsData:', goodsData)
+      } else {
+        setCurrentPage('profile')
+        // 获取用户信息
+        fetchUserProfile()
+        // 获取用户商品
+        fetchUserGoods(goodsData.pageNum, goodsData.pageSize)
+        console.log('goodsData:', goodsData)
+      }
+    } else {
+      setCurrentPage('login')
+    }
+  }, [location.pathname])
 
   // 检查用户是否被封禁
   const isUserBanned = userProfile?.creditScore ? userProfile.creditScore < BANNED_CREDIT_SCORE : false
@@ -158,7 +159,7 @@ useEffect(() => {
       const result = await http.get<{ code: number; message: string; data: UserProfile }>(
         `/user/profile/${sellerId}`
       )
-      
+
       if (result.code === 200) {
         setUserProfile(result.data)
         console.log('获取卖家信息成功:', result.data)
@@ -171,44 +172,44 @@ useEffect(() => {
   }
 
   // 获取用户近期商品
-const fetchUserGoods = async (pageNum: number, pageSize: number) => {
-  setGoodsLoading(true)
-  try {
-    // 如果是商家主页，调用带sellerId的接口
-    const sellerIdMatch = location.pathname.match(/\/user\/profile\/(\d+)/)
-    const sellerId = sellerIdMatch ? sellerIdMatch[1] : null
-    let url = ''
-    // console.log('我还没失败')
-    // 根据当前页面类型选择不同的接口
-    if (!sellerId) {
+  const fetchUserGoods = async (pageNum: number, pageSize: number) => {
+    setGoodsLoading(true)
+    try {
+      // 如果是商家主页，调用带sellerId的接口
+      const sellerIdMatch = location.pathname.match(/\/user\/profile\/(\d+)/)
+      const sellerId = sellerIdMatch ? sellerIdMatch[1] : null
+      let url = ''
       // console.log('我还没失败')
-      // 用户个人中心，调用原接口
-      url = `/user/recent-goods?pageNum=${pageNum}&pageSize=${pageSize}`
-    } else if (sellerId) {
-      // console.log('桀桀桀桀桀桀eiejie')
-      url = `/user/recent-goods/${sellerId}?pageNum=${pageNum}&pageSize=${pageSize}`
-    } else {
-      // 添加默认情况处理，防止url为空
-      console.warn('未知的页面类型，返回首页')
-      url = '/'
+      // 根据当前页面类型选择不同的接口
+      if (!sellerId) {
+        // console.log('我还没失败')
+        // 用户个人中心，调用原接口
+        url = `/user/recent-goods?pageNum=${pageNum}&pageSize=${pageSize}`
+      } else if (sellerId) {
+        // console.log('桀桀桀桀桀桀eiejie')
+        url = `/user/recent-goods/${sellerId}?pageNum=${pageNum}&pageSize=${pageSize}`
+      } else {
+        // 添加默认情况处理，防止url为空
+        console.warn('未知的页面类型，返回首页')
+        url = '/'
+      }
+      // 添加url检查
+      if (!url) {
+        throw new Error('请求URL不能为空')
+      }
+      const result = await http.get<{ code: number; message: string; data: PageInfo<Goods> }>(url)
+      if (result.code === 200) {
+        setGoodsData(result.data)
+        console.log('获取用户商品成功:', result.data)
+      } else {
+        console.error('获取用户商品失败:', result.message)
+      }
+    } catch (error) {
+      console.error('获取用户商品失败:', error)
+    } finally {
+      setGoodsLoading(false)
     }
-    // 添加url检查
-    if (!url) {
-      throw new Error('请求URL不能为空')
-    }
-    const result = await http.get<{ code: number; message: string; data: PageInfo<Goods> }>(url)
-    if (result.code === 200) {
-      setGoodsData(result.data)
-      console.log('获取用户商品成功:', result.data)
-    } else {
-      console.error('获取用户商品失败:', result.message)
-    }
-  } catch (error) {
-    console.error('获取用户商品失败:', error)
-  } finally {
-    setGoodsLoading(false)
   }
-}
   // 处理分页变化
   const handlePageChange = (page: number, pageSize?: number) => {
     fetchUserGoods(page, pageSize || goodsData.pageSize)
@@ -252,23 +253,27 @@ const fetchUserGoods = async (pageNum: number, pageSize: number) => {
     setLoading(true)
     try {
       const result = await http.post<{ code: number; message: string; data: UserProfile }>('/user/login', values)
-      
+
       if (result.code === 200) {
         // 登录成功，确保token保存到localStorage
         if (result.data.token) {
           localStorage.setItem('token', result.data.token)
           console.log('登录成功，token已保存到localStorage')
         }
-        
+
         setUserProfile(result.data)
+        // 保存用户信息到 localStorage
+        saveUser(result.data)
+        console.log('登录成功，用户信息已保存到localStorage')
+
         // 跳转到个人中心
         navigate('/user/profile')
         notification.success({
           message: '登录成功',
           duration: 3,
         })
-        
-        
+
+
       } else {
         message.error(result.message || '登录失败')
       }
@@ -285,7 +290,7 @@ const fetchUserGoods = async (pageNum: number, pageSize: number) => {
     setLoading(true)
     try {
       const result = await http.get<{ code: number; message: string; data: UserProfile }>('/user/profile')
-      
+
       if (result.code === 200) {
         setUserProfile(result.data)
         console.log('用户信息获取成功')
@@ -306,7 +311,7 @@ const fetchUserGoods = async (pageNum: number, pageSize: number) => {
     setLoading(true)
     try {
       const result = await http.post<{ code: number; message: string; data: any }>('/user/register', values)
-      
+
       if (result.code === 200) {
         message.success('注册成功！')
         navigate('/user')
@@ -326,7 +331,7 @@ const fetchUserGoods = async (pageNum: number, pageSize: number) => {
     setLoading(true)
     try {
       const result = await http.post<{ code: number; message: string; data: any }>('/user/verify-identity', values)
-      
+
       if (result.code === 200) {
         setUserInfo(values)
         setCurrentStep(1)
@@ -350,7 +355,7 @@ const fetchUserGoods = async (pageNum: number, pageSize: number) => {
         ...userInfo,
         newPassword: values.newPassword
       })
-      
+
       if (result.code === 200) {
         message.success('密码重置成功！')
         setCurrentStep(0)
@@ -387,7 +392,7 @@ const fetchUserGoods = async (pageNum: number, pageSize: number) => {
     setLoading(true)
     try {
       const result = await http.put<{ code: number; message: string; data: UserProfile }>('/user/update-profile', values)
-      
+
       if (result.code === 200) {
         setUserProfile(result.data)
         setIsEditing(false)
@@ -448,30 +453,30 @@ const fetchUserGoods = async (pageNum: number, pageSize: number) => {
 
   // 个人中心页面
   if (currentPage === 'profile' || currentPage === 'seller-profile') {
-  if (!userProfile) {
+    if (!userProfile) {
+      return (
+        <SystemLayoutNoBackground>
+          <div className="user-profile-container">
+            <Card title="加载中..." className="profile-card">
+              <div style={{ textAlign: 'center', padding: '40px' }}>
+                <div>加载中...</div>
+              </div>
+            </Card>
+          </div>
+        </SystemLayoutNoBackground>
+      )
+    }
+
     return (
       <SystemLayoutNoBackground>
         <div className="user-profile-container">
-          <Card title="加载中..." className="profile-card">
-            <div style={{ textAlign: 'center', padding: '40px' }}>
-              <div>加载中...</div>
-            </div>
-          </Card>
-        </div>
-      </SystemLayoutNoBackground>
-    )
-  }
-
-  return (
-    <SystemLayoutNoBackground>
-      <div className="user-profile-container">
-        <Card
-          className="profile-card"
-          title={currentPage === 'seller-profile' ? '卖家中心' : '个人中心'}
-          extra={
-            currentPage === 'seller-profile'
-              ? null
-              : !isEditing && !isUserBanned ? (
+          <Card
+            className="profile-card"
+            title={currentPage === 'seller-profile' ? '卖家中心' : '个人中心'}
+            extra={
+              currentPage === 'seller-profile'
+                ? null
+                : !isEditing && !isUserBanned ? (
                   <Button
                     type="primary"
                     icon={<EditOutlined />}
@@ -481,7 +486,7 @@ const fetchUserGoods = async (pageNum: number, pageSize: number) => {
                     编辑信息
                   </Button>
                 ) : null
-          }
+            }
           >
             {isUserBanned && (
               <Alert
@@ -520,53 +525,53 @@ const fetchUserGoods = async (pageNum: number, pageSize: number) => {
 
                 <Divider />
 
-                 {/* 用户信息详情展示 */}
-                  {currentPage === 'profile' && (
-                    <Descriptions column={1} bordered className="profile-details">
-                      <Descriptions.Item label="用户ID">{userProfile.userId}</Descriptions.Item>
-                      <Descriptions.Item label="用户名">{userProfile.username}</Descriptions.Item>
-                      <Descriptions.Item label="邮箱">{userProfile.email}</Descriptions.Item>
-                      <Descriptions.Item label="手机号">{userProfile.phoneNumber}</Descriptions.Item>
-                      <Descriptions.Item label="真实姓名">{userProfile.realName}</Descriptions.Item>
-                      <Descriptions.Item label="学号">{userProfile.schoolId}</Descriptions.Item>
-                      <Descriptions.Item label="注册时间">{userProfile.created_at}</Descriptions.Item>
-                      <Descriptions.Item label="信用状态">
-                        <Tag color={getCreditScoreColor(userProfile.creditScore)}>
-                          {userProfile.creditScore}分 - {getCreditScoreStatus(userProfile.creditScore)}
-                          {isUserBanned && ' (已封禁)'}
-                        </Tag>
-                      </Descriptions.Item>
-                    </Descriptions>
-                  )}
+                {/* 用户信息详情展示 */}
+                {currentPage === 'profile' && (
+                  <Descriptions column={1} bordered className="profile-details">
+                    <Descriptions.Item label="用户ID">{userProfile.userId}</Descriptions.Item>
+                    <Descriptions.Item label="用户名">{userProfile.username}</Descriptions.Item>
+                    <Descriptions.Item label="邮箱">{userProfile.email}</Descriptions.Item>
+                    <Descriptions.Item label="手机号">{userProfile.phoneNumber}</Descriptions.Item>
+                    <Descriptions.Item label="真实姓名">{userProfile.realName}</Descriptions.Item>
+                    <Descriptions.Item label="学号">{userProfile.schoolId}</Descriptions.Item>
+                    <Descriptions.Item label="注册时间">{userProfile.created_at}</Descriptions.Item>
+                    <Descriptions.Item label="信用状态">
+                      <Tag color={getCreditScoreColor(userProfile.creditScore)}>
+                        {userProfile.creditScore}分 - {getCreditScoreStatus(userProfile.creditScore)}
+                        {isUserBanned && ' (已封禁)'}
+                      </Tag>
+                    </Descriptions.Item>
+                  </Descriptions>
+                )}
 
-                   {/* 用户操作按钮 */}
-                  {currentPage === 'profile' && (
-                    <div className="profile-actions">
-                      <Button 
-                        type="primary" 
-                        onClick={() => navigate('/user/forgot-password')}
-                        className="change-password-btn"
-                        disabled={isUserBanned}
-                        loading={loading}
-                      >
-                        修改密码
-                      </Button>
-                      <Button onClick={handleLogout} loading={loading}>
-                        退出登录
-                      </Button>
-                      <Button onClick={() => navigate('/')}>
-                        返回首页
-                      </Button>
-                    </div>
-                  )}
+                {/* 用户操作按钮 */}
+                {currentPage === 'profile' && (
+                  <div className="profile-actions">
+                    <Button
+                      type="primary"
+                      onClick={() => navigate('/user/forgot-password')}
+                      className="change-password-btn"
+                      disabled={isUserBanned}
+                      loading={loading}
+                    >
+                      修改密码
+                    </Button>
+                    <Button onClick={handleLogout} loading={loading}>
+                      退出登录
+                    </Button>
+                    <Button onClick={() => navigate('/')}>
+                      返回首页
+                    </Button>
+                  </div>
+                )}
                 <Divider />
-                
+
                 {/* 用户近期商品展示模块 */}
                 <div className="recent-goods-section">
                   <Title level={4} style={{ marginBottom: 16 }}>
                     <ShoppingOutlined /> 商品橱窗
                   </Title>
-                  
+
                   {goodsLoading ? (
                     <div style={{ textAlign: 'center', padding: '40px' }}>
                       <div>商品加载中...</div>
@@ -601,12 +606,12 @@ const fetchUserGoods = async (pageNum: number, pageSize: number) => {
                                     }}
                                   />
                                 ) : (
-                                  <div 
-                                    style={{ 
-                                      height: 160, 
-                                      background: '#f5f5f5', 
-                                      display: 'flex', 
-                                      alignItems: 'center', 
+                                  <div
+                                    style={{
+                                      height: 160,
+                                      background: '#f5f5f5',
+                                      display: 'flex',
+                                      alignItems: 'center',
                                       justifyContent: 'center',
                                       color: '#999'
                                     }}
@@ -632,8 +637,8 @@ const fetchUserGoods = async (pageNum: number, pageSize: number) => {
                                 }
                                 description={
                                   <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                                    <Text 
-                                      type="secondary" 
+                                    <Text
+                                      type="secondary"
                                       ellipsis={{ tooltip: item.description }}
                                       style={{ fontSize: '12px' }}
                                     >
@@ -663,7 +668,7 @@ const fetchUserGoods = async (pageNum: number, pageSize: number) => {
                             onChange={handlePageChange}
                             showSizeChanger
                             showQuickJumper
-                            showTotal={(total, range) => 
+                            showTotal={(total, range) =>
                               `第 ${range[0]}-${range[1]} 条，共 ${total} 条商品`
                             }
                           />
@@ -674,8 +679,8 @@ const fetchUserGoods = async (pageNum: number, pageSize: number) => {
                     <div style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
                       <ShoppingOutlined style={{ fontSize: 48, marginBottom: 16 }} />
                       <div>暂无商品</div>
-                      <Button 
-                        type="primary" 
+                      <Button
+                        type="primary"
                         style={{ marginTop: 16 }}
                         onClick={() => navigate('/goods/publish')}
                       >
@@ -685,7 +690,7 @@ const fetchUserGoods = async (pageNum: number, pageSize: number) => {
                   )}
                 </div>
 
-                
+
               </div>
             ) : (
               // 编辑模式

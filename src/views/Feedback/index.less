@@ -1,0 +1,122 @@
+.feedback-container {
+  min-height: calc(100vh - 200px);
+  padding: 24px;
+  width: 100vw;
+  margin: 0 auto;
+
+  .feedback-header {
+    margin-bottom: 24px;
+
+    .header-content {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+
+      .header-title {
+        flex: 1;
+
+        .page-title {
+          margin: 0;
+          font-size: 28px;
+          font-weight: 600;
+          color: #262626;
+        }
+
+        .page-subtitle {
+          color: #8c8c8c;
+          font-size: 14px;
+        }
+      }
+    }
+  }
+
+  .feedback-tabs-card {
+    margin-bottom: 24px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+
+  .feedback-list-card {
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+
+    .review-item {
+      padding: 24px 0;
+      border-bottom: 1px solid #f0f0f0;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .review-content {
+        width: 100%;
+
+        .review-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 16px;
+
+          .reviewer-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+
+            .reviewer-name {
+              font-size: 16px;
+              font-weight: 600;
+              color: #262626;
+            }
+
+            .review-meta {
+              display: flex;
+              align-items: center;
+            }
+          }
+        }
+
+        .review-body {
+          padding-left: 64px;
+
+          .review-comment {
+            margin: 0;
+            color: #595959;
+            font-size: 14px;
+            line-height: 1.8;
+            white-space: pre-wrap;
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .feedback-container {
+    padding: 16px;
+
+    .feedback-header {
+      .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+      }
+    }
+
+    .feedback-list-card {
+      .review-item {
+        .review-content {
+          .review-header {
+            flex-direction: column;
+            gap: 12px;
+          }
+
+          .review-body {
+            padding-left: 0;
+            margin-top: 12px;
+          }
+        }
+      }
+    }
+  }
+}

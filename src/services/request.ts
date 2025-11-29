@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { message } from "antd";
 import axios, { type AxiosRequestConfig } from "axios";
 
 const instance = axios.create({
@@ -8,7 +9,16 @@ const instance = axios.create({
 // 添加请求拦截器
 instance.interceptors.request.use(
   function (config) {
-    // 在发送请求之前做些什么
+    const token = localStorage.getItem('token');
+    // console.log('请求拦截器 - 当前token:', token);
+    console.log('请求完整URL:', config.url);
+
+    if (token) {
+      config.headers = config.headers || {};
+      config.headers.token = token;
+      console.log('已添加token头');
+    }
+
     return config;
   },
   function (error) {
@@ -29,8 +39,28 @@ instance.interceptors.response.use(
     return response;
   },
   function (error) {
-    // 超出 2xx 范围的状态码都会触发该函数。
-    // 对响应错误做点什么
+    console.error('响应拦截器 - 请求失败:', error);
+    console.error('错误详情:', {
+      message: error.message,
+      code: error.code,
+      status: error.response?.status,
+      url: error.config?.url
+    });
+
+    if (error.response) {
+      const { status } = error.response;
+
+      if (status === 401) {
+        message.error('登录已过期，请重新登录');
+        localStorage.removeItem('token');
+        window.location.href = '/user';
+      } else if (status === 404) {
+        message.error('请求的资源不存在，请检查后端服务');
+      }
+    } else if (error.code === 'ECONNREFUSED' || error.message.includes('404')) {
+      message.error('无法连接到后端服务，请检查服务是否启动');
+    }
+
     return Promise.reject(error);
   }
 );

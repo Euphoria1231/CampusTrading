@@ -198,6 +198,8 @@ const Connection: FC = () => {
   } = useConnection()
 
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null)
+  // 临时会话状态：当从商品详情页跳转过来但没有会话时使用
+  const [tempTargetUserId, setTempTargetUserId] = useState<number | null>(null)
 
   // 加载会话列表
   useEffect(() => {
@@ -230,38 +232,70 @@ const Connection: FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedConversationId, currentUserId])
 
+  // 当有临时目标用户时，加载聊天历史（用于新会话）
+  useEffect(() => {
+    if (tempTargetUserId && currentUserId && !selectedConversationId) {
+      fetchChatHistory(currentUserId, tempTargetUserId)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tempTargetUserId, currentUserId, selectedConversationId])
+
   // 当传入 sellerId 时，自动选中或创建与该卖家的会话
   useEffect(() => {
-    if (sellerId && currentUserId && conversations.length > 0) {
+    if (sellerId && currentUserId) {
       const targetUserId = Number(sellerId)
+
+      // 等待会话列表加载完成
+      if (loading.sessionList) {
+        return
+      }
+
       // 查找是否已有与该卖家的会话
       const existingConversation = conversations.find(
         (conv) => conv.targetUserId === targetUserId
       )
 
       if (existingConversation) {
-        // 如果已存在会话，自动选中
+        // 如果已存在会话，自动选中并清除临时状态
         setSelectedConversationId(existingConversation.id)
-      } else {
-        // 如果不存在，提示用户
-        antMessage.info(`正在联系卖家 ID: ${sellerId}`)
-        // 可以后续扩展：调用后端API创建新会话
+        setTempTargetUserId(null)
+      } else if (conversations.length > 0 || !loading.sessionList) {
+        // 如果不存在会话，设置临时目标用户，显示聊天窗口
+        setTempTargetUserId(targetUserId)
+        setSelectedConversationId(null)
+        antMessage.info(`正在联系卖家，可以直接发送消息开始对话`)
       }
     }
-  }, [sellerId, currentUserId, conversations])
+  }, [sellerId, currentUserId, conversations, loading.sessionList])
+
+  // 当会话列表更新后，检查是否有新创建的会话需要选中
+  useEffect(() => {
+    if (tempTargetUserId && currentUserId && conversations.length > 0) {
+      const newConversation = conversations.find(
+        (conv) => conv.targetUserId === tempTargetUserId
+      )
+      if (newConversation) {
+        // 找到新创建的会话，自动选中
+        setSelectedConversationId(newConversation.id)
+        setTempTargetUserId(null)
+      }
+    }
+  }, [conversations, tempTargetUserId, currentUserId])
 
 
   // 转换当前会话的消息数据
   const currentMessages = useMemo(() => {
     console.log('currentMessages useMemo triggered:', {
       selectedConversationId,
+      tempTargetUserId,
       currentUserId,
       chatHistoryLength: chatHistory.length,
       chatHistory
     })
 
-    if (!selectedConversationId || !currentUserId) {
-      console.log('Missing selectedConversationId or currentUserId')
+    // 需要有选中的会话或临时目标用户
+    if ((!selectedConversationId && !tempTargetUserId) || !currentUserId) {
+      console.log('Missing selectedConversationId/tempTargetUserId or currentUserId')
       return []
     }
 
@@ -273,7 +307,7 @@ const Connection: FC = () => {
     const converted = convertChatMessagesToMessages(chatHistory, currentUserId)
     console.log('Converted messages:', converted)
     return converted
-  }, [chatHistory, selectedConversationId, currentUserId])
+  }, [chatHistory, selectedConversationId, tempTargetUserId, currentUserId])
 
   // 显示错误提示
   useEffect(() => {
@@ -287,21 +321,36 @@ const Connection: FC = () => {
   }
 
   const handleSendMessage = async (message: string) => {
-    if (!currentUserId || !selectedConversationId || !message.trim()) {
+    if (!currentUserId || !message.trim()) {
       return
     }
 
-    const conversation = conversations.find(
-      (conv) => conv.id === selectedConversationId
-    )
+    let targetUserId: number
+    let productId: number | undefined
 
-    if (!conversation) {
-      antMessage.error('未找到会话信息')
+    // 如果有选中的会话，使用会话信息
+    if (selectedConversationId) {
+      const conversation = conversations.find(
+        (conv) => conv.id === selectedConversationId
+      )
+
+      if (!conversation) {
+        antMessage.error('未找到会话信息')
+        return
+      }
+
+      targetUserId = conversation.targetUserId
+      productId = conversation.productId || productIdFromUrl
+    }
+    // 如果有临时目标用户（新会话），使用临时信息
+    else if (tempTargetUserId) {
+      targetUserId = tempTargetUserId
+      productId = productIdFromUrl
+    }
+    else {
+      antMessage.error('请先选择一个会话')
       return
     }
-
-    // 优先从会话中获取productId，如果没有则使用URL中的productId
-    const productId = conversation.productId || productIdFromUrl
 
     if (!productId) {
       antMessage.error('商品ID缺失，无法发送消息')
@@ -311,12 +360,13 @@ const Connection: FC = () => {
     try {
       await sendMessage(
         currentUserId,
-        conversation.targetUserId,
+        targetUserId,
         message.trim(),
         productId,
-        conversation.targetUserId // 传递当前会话的对方用户ID，用于发送成功后刷新聊天历史
+        targetUserId // 传递目标用户ID，用于发送成功后刷新聊天历史
       )
       // 发送成功后，聊天历史会自动刷新（由 hook 处理）
+      // 如果是临时会话，会话列表刷新后会自动选中新创建的会话
       antMessage.success('消息发送成功')
     } catch (err) {
       // 错误已经在 hook 中处理并设置到 error 状态
@@ -325,9 +375,26 @@ const Connection: FC = () => {
     }
   }
 
-  const selectedConversation = conversations.find(
-    (conv) => conv.id === selectedConversationId
-  )
+  // 获取当前选中的会话或临时会话
+  const selectedConversation = useMemo(() => {
+    if (selectedConversationId) {
+      return conversations.find((conv) => conv.id === selectedConversationId)
+    } else if (tempTargetUserId) {
+      // 创建临时会话对象用于显示
+      return {
+        id: `temp-${tempTargetUserId}`,
+        sessionId: `temp-${tempTargetUserId}`,
+        userId: `user${tempTargetUserId}`,
+        userName: `用户${tempTargetUserId}`,
+        lastMessage: '',
+        lastMessageTime: '',
+        unreadCount: 0,
+        targetUserId: tempTargetUserId,
+        productId: productIdFromUrl
+      } as Conversation
+    }
+    return undefined
+  }, [selectedConversationId, tempTargetUserId, conversations, productIdFromUrl])
 
   // 如果用户未登录，显示提示
   if (!currentUserId) {
