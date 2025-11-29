@@ -2,7 +2,7 @@ import { Image } from "antd";
 import './index.less';
 import { type FC, } from "react";
 import { useNavigate } from "react-router-dom";
-import avatar from '@/assets/images/avatar.jpg'
+import avatar from '@/assets/images/111.jpg'
 export type SystemLayoutProps = React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement>;
 const ToggleStyleContainer = ({ stroke = '#FFFFFFdd' }: { stroke?: string }) => {
   return (

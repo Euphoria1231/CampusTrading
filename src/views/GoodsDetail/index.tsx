@@ -1,6 +1,6 @@
 import SystemLayoutNoBackground from "@/components/SystemLayout/SystemLayoutNoBackground"
-import { Button, Card, Descriptions, message, Spin, Tag, Image, Row, Col, Typography, Divider, Space } from "antd"
-import { ArrowLeftOutlined, EditOutlined, ClockCircleOutlined, EnvironmentOutlined, PhoneOutlined, UserOutlined, CalendarOutlined, StarOutlined, HomeOutlined } from "@ant-design/icons"
+import { Button, Card, message, Spin, Tag, Image, Row, Col, Typography, Divider, Space } from "antd"
+import { ArrowLeftOutlined, EditOutlined, ClockCircleOutlined, EnvironmentOutlined, PhoneOutlined, UserOutlined, CalendarOutlined, StarOutlined, HomeOutlined, ShoppingCartOutlined } from "@ant-design/icons"
 import type { FC } from "react"
 import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
@@ -101,6 +101,93 @@ const GoodsDetail: FC = () => {
     if (id) {
       // 跳转到评价列表页面
       navigate(`/reviews/goods/${id}`)
+    }
+  }
+
+  // 发起交易
+  const handleCreateTrade = async () => {
+    console.log('🛒 开始创建交易订单...')
+    
+    //const token = localStorage.getItem('token')
+    //const currentUserId = localStorage.getItem('userId')
+    
+    // // 验证登录状态
+    // if (!token) {
+    //   message.warning('请先登录')
+    //   navigate('/user')
+    //   return
+    // }
+    
+    // // 验证userId
+    // if (!currentUserId) {
+    //   message.error('无法获取用户信息，请重新登录')
+    //   navigate('/user')
+    //   return
+    // }
+    
+    // 验证商品信息
+    if (!detailData || !detailData.goods) {
+      message.error('商品信息不完整')
+      return
+    }
+
+    const { goods } = detailData
+    
+    // // 检查是否是自己的商品
+    // if (goods.sellerId === Number(currentUserId)) {
+    //   message.warning('不能购买自己发布的商品')
+    //   return
+    // }
+
+    // 检查商品状态
+    if (goods.status !== 'ACTIVE') {
+      message.warning('该商品已下架，无法购买')
+      return
+    }
+
+    try {
+      const tradeData = {
+        id: goods.id,
+        name: goods.name,
+        price: goods.price,
+        image_url: goods.imageUrl || '',
+        trade_localtion: goods.tradeLocation || '待协商',
+        seller_id: goods.sellerId,
+        //buyer_id: Number(currentUserId)
+      }
+
+      console.log('📤 发送交易请求:', tradeData)
+      message.loading({ content: '正在创建订单...', key: 'createTrade' })
+
+      const result = await http.post<{ code: number; message: string; data: number }>('/trades', tradeData)
+      
+      console.log('📥 收到后端响应:', result)
+      
+      if (result.code === 200) {
+        message.success({ content: `交易订单创建成功！订单ID: ${result.data}`, key: 'createTrade', duration: 2 })
+        console.log('✅ 交易创建成功，订单ID:', result.data)
+        
+        // 跳转到交易管理页面查看订单
+        setTimeout(() => {
+          console.log('🔄 跳转到交易管理页面')
+          navigate('/trade-manage')
+        }, 1500)
+      } else {
+        message.error({ content: result.message || '创建交易订单失败', key: 'createTrade' })
+        console.error('❌ 后端返回错误:', result)
+      }
+    } catch (error: any) {
+      console.error('❌ 创建交易失败:', error)
+      message.error({ 
+        content: error.response?.data?.message || '创建交易订单失败，请稍后重试', 
+        key: 'createTrade' 
+      })
+      
+      // 打印详细错误信息
+      if (error.response) {
+        console.error('错误响应:', error.response.data)
+        console.error('错误状态码:', error.response.status)
+      }
     }
   }
 
@@ -238,6 +325,16 @@ const GoodsDetail: FC = () => {
                       <Space direction="vertical" size="small" style={{ width: '100%' }}>
                         <Button 
                           type="primary" 
+                          icon={<ShoppingCartOutlined />}
+                          onClick={handleCreateTrade}
+                          className="buy-button"
+                          size="large"
+                          block
+                          disabled={goods.status !== 'ACTIVE'}
+                        >
+                          {goods.status === 'ACTIVE' ? '立即购买' : '商品已下架'}
+                        </Button>
+                        <Button 
                           icon={<PhoneOutlined />}
                           onClick={handleContactSeller}
                           className="contact-button"
