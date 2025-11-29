@@ -154,7 +154,6 @@ const GoodsDetail: FC = () => {
         image_url: goods.imageUrl || '',
         trade_localtion: goods.tradeLocation || '待协商',
         seller_id: goods.sellerId,
-        //buyer_id: Number(currentUserId)
       }
 
       console.log('📤 发送交易请求:', tradeData)
@@ -324,7 +323,6 @@ const GoodsDetail: FC = () => {
                         </div>
                       </div>
                       <Space direction="vertical" size="small" style={{ width: '100%' }}>
-<<<<<<< HEAD
                         <Button 
                           type="primary" 
                           icon={<ShoppingCartOutlined />}
@@ -337,10 +335,6 @@ const GoodsDetail: FC = () => {
                           {goods.status === 'ACTIVE' ? '立即购买' : '商品已下架'}
                         </Button>
                         <Button 
-=======
-                        <Button
-                          type="primary"
->>>>>>> 826fb30ba4934b2a72873855dbd5d925a42cc979
                           icon={<PhoneOutlined />}
                           onClick={handleContactSeller}
                           className="contact-button"
