@@ -38,6 +38,7 @@ interface UseConnectionReturn {
     productId?: number,
     currentTargetUserId?: number
   ) => Promise<void>;
+  clearState: () => void;
 }
 
 const useConnection = (): UseConnectionReturn => {
@@ -225,6 +226,25 @@ const useConnection = (): UseConnectionReturn => {
     }
   };
 
+  /**
+   * 清空所有状态（用于用户切换时）
+   */
+  const clearState = () => {
+    setChatHistory([]);
+    setSessionList([]);
+    setUnreadCount(0);
+    setUnreadCountWithUser(0);
+    setError(null);
+    setLoading({
+      chatHistory: false,
+      sessionList: false,
+      unreadCount: false,
+      unreadCountWithUser: false,
+      markAsRead: false,
+      sendMessage: false,
+    });
+  };
+
   return {
     chatHistory,
     sessionList,
@@ -238,6 +258,7 @@ const useConnection = (): UseConnectionReturn => {
     fetchUnreadCountWithUser,
     markMessageAsRead,
     sendMessage,
+    clearState,
   };
 };
 

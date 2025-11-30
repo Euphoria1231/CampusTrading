@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react'
 import type { ReactNode } from 'react'
 import { http } from '@/utils/request'
 import { saveUser, getUser, removeUser, type UserProfile } from '@/utils/storage'
@@ -30,6 +30,8 @@ interface UserProviderProps {
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [user, setUser] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(false)
+  // 使用 useRef 跟踪上一个 token，用于检测 token 变化
+  const prevTokenRef = useRef<string | null>(localStorage.getItem('token'))
 
   const isAuthenticated = !!user && !!localStorage.getItem('token')
 
@@ -86,26 +88,100 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     }
   }, [logout])
 
+  // 检查并同步用户状态的辅助函数
+  const checkAndSyncUser = useCallback(() => {
+    const token = localStorage.getItem('token')
+    const cachedUser = getUser()
+
+    // 使用函数式更新来获取最新的 user 状态，避免闭包问题
+    setUser((currentUser) => {
+      // 如果 token 被移除，清空用户状态
+      if (!token) {
+        prevTokenRef.current = null
+        return null
+      }
+
+      // 如果 token 变化了（用户切换）
+      if (prevTokenRef.current !== token) {
+        prevTokenRef.current = token
+
+        // 如果缓存中有用户信息，先使用缓存
+        if (cachedUser) {
+          // 检查缓存的用户是否与当前 user 匹配
+          // 如果 userId 不匹配，说明用户切换了
+          if (!currentUser || currentUser.userId !== cachedUser.userId) {
+            // 后台更新用户信息
+            fetchUserProfile().catch((error: unknown) => {
+              console.error('后台更新用户信息失败:', error)
+            })
+            return cachedUser
+          }
+        } else {
+          // 如果没有缓存，但有 token，尝试获取用户信息
+          if (!currentUser) {
+            fetchUserProfile().catch((error: unknown) => {
+              console.error('获取用户信息失败:', error)
+            })
+          }
+        }
+      } else {
+        // token 没变化，但检查用户状态是否一致
+        if (token && !currentUser) {
+          // 有 token 但没有 user，尝试恢复
+          if (cachedUser) {
+            fetchUserProfile().catch((error: unknown) => {
+              console.error('后台更新用户信息失败:', error)
+            })
+            return cachedUser
+          } else {
+            fetchUserProfile().catch((error: unknown) => {
+              console.error('获取用户信息失败:', error)
+            })
+          }
+        } else if (token && currentUser && cachedUser && currentUser.userId !== cachedUser.userId) {
+          // token 存在，但缓存的用户ID与当前用户ID不一致，说明用户切换了
+          fetchUserProfile().catch((error: unknown) => {
+            console.error('后台更新用户信息失败:', error)
+          })
+          return cachedUser
+        }
+      }
+
+      // 如果没有变化，返回当前状态
+      return currentUser
+    })
+  }, [fetchUserProfile])
+
   // 初始化时检查token并获取用户信息
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (token && !user) {
-      // 优先使用本地缓存
-      const cachedUser = getUser()
-      if (cachedUser) {
-        setUser(cachedUser)
+    checkAndSyncUser()
+  }, [checkAndSyncUser])
+
+  // 监听 storage 事件（用于跨标签页同步）
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      // 监听 token 或 user_profile 的变化
+      if (e.key === 'token' || e.key === 'user_profile') {
+        checkAndSyncUser()
       }
-      // 然后在后台调用 API 更新用户信息
-      fetchUserProfile().catch((error: unknown) => {
-        console.error('后台更新用户信息失败:', error)
-        // 如果更新失败，清除缓存
-        if (cachedUser) {
-          removeUser()
-          setUser(null)
-        }
-      })
     }
-  }, [user, fetchUserProfile])
+
+    window.addEventListener('storage', handleStorageChange)
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+    }
+  }, [checkAndSyncUser])
+
+  // 定期检查 token 和 user 状态是否同步（用于同一标签页内的变化）
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      checkAndSyncUser()
+    }, 1000) // 每秒检查一次
+
+    return () => {
+      clearInterval(intervalId)
+    }
+  }, [checkAndSyncUser])
 
   const value: UserContextType = {
     user,

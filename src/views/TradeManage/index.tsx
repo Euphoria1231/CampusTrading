@@ -455,9 +455,68 @@ const TradeDetailPage: FC<{ id: string }> = ({ id }) => {
     }
   };
 
+  const handleComplete = async () => {
+    if (!trade || trade.status !== "ACCEPTED") return;
+
+    // 检查权限：只有买家才能确认收货
+    if (currentUserId !== trade.buyer_id) {
+      alert('只有买家才能确认收货！');
+      return;
+    }
+
+    // 防止重复点击
+    if (isProcessing) return;
+
+    setIsProcessing(true);
+
+    try {
+      console.log(`🔄 正在确认收货，交易ID: ${trade.id}...`);
+      const updated = await updateTradeStatus(trade.id, "COMPLETED");
+      console.log(`✅ 确认收货成功:`, updated);
+
+      // 正确更新状态
+      setTrade(updated);
+      alert("确认收货成功！交易已完成！");
+
+    } catch (err: any) {
+      console.error("❌ 确认收货失败:", err);
+
+      // 详细打印 Axios 错误信息
+      if (err.isAxiosError) {
+        console.error("🔍 Axios 错误详情:");
+        console.error("状态码:", err.response?.status);
+        console.error("状态文本:", err.response?.statusText);
+        console.error("响应数据:", err.response?.data);
+        console.error("请求URL:", err.config?.url);
+        console.error("请求方法:", err.config?.method);
+        console.error("请求数据:", err.config?.data);
+      }
+
+      // 提供更详细的错误信息
+      let errorMessage = "未知错误";
+
+      if (err.response?.status === 403) {
+        errorMessage = "权限不足，无法操作此交易";
+      } else if (err.response?.status === 404) {
+        errorMessage = "交易不存在";
+      } else if (err.response?.status === 400) {
+        errorMessage = err.response?.data?.message || "请求参数错误";
+      } else if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+
+      alert(`操作失败: ${errorMessage}`);
+
+    } finally {
+      // 重要：无论成功失败都要重置处理状态
+      setIsProcessing(false);
+    }
+  };
+
   const handleReportSubmit = async (reportData: ReportFormData) => {
     try {
-      await submitReport(reportData);
       alert("举报提交成功！");
       setShowReportModal(false);
     } catch (err) {
@@ -486,8 +545,19 @@ const TradeDetailPage: FC<{ id: string }> = ({ id }) => {
           </button>
         )}
 
+        {/* 买家操作：确认收货 */}
+        {isBuyer && trade.status === "ACCEPTED" && (
+          <button
+            onClick={handleComplete}
+            className="complete-button"
+            disabled={isProcessing}
+          >
+            {isProcessing ? "处理中..." : "确认收货"}
+          </button>
+        )}
+
         {/* 买家操作：交易完成后显示评价和举报 */}
-        {isBuyer && (trade.status === "ACCEPTED" || trade.status === "COMPLETED") && (
+        {isBuyer && trade.status === "COMPLETED" && (
           <>
             <button
               onClick={() => navigate(`/reviews/goods/${trade.product_id}?orderId=${trade.id}&revieweeId=${trade.seller_id}`)}
@@ -575,7 +645,7 @@ const TradeDetailPage: FC<{ id: string }> = ({ id }) => {
             <p>总价: ¥{total_amount.toFixed(2)}</p>
           </div>
         </div>
-        
+
         <div className="trade-meta">
           <div className="meta-item">
             <p>

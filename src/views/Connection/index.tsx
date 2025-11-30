@@ -3,7 +3,7 @@ import ConversationItem from "@/components/ConversationItem"
 import MessageList from "@/components/MessageList"
 import MessageInput from "@/components/MessageInput"
 import { Card, Empty, Typography, Divider, message as antMessage, Spin } from "antd"
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useRef } from "react"
 import type { FC } from "react"
 import { useParams, useSearchParams } from "react-router-dom"
 import type { Message } from "@/components/MessageList"
@@ -194,16 +194,35 @@ const Connection: FC = () => {
     fetchSessionList,
     fetchUnreadCount,
     markMessageAsRead,
-    sendMessage
+    sendMessage,
+    clearState
   } = useConnection()
 
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null)
   // 临时会话状态：当从商品详情页跳转过来但没有会话时使用
   const [tempTargetUserId, setTempTargetUserId] = useState<number | null>(null)
 
+  // 使用 useRef 来跟踪上一个用户ID，用于检测用户切换
+  const prevUserIdRef = useRef<number | undefined>(currentUserId)
+
+  // 监听用户切换，清空所有相关状态
+  useEffect(() => {
+    // 如果用户ID发生变化（从有值变为另一个值，或从有值变为无值）
+    if (prevUserIdRef.current !== undefined && prevUserIdRef.current !== currentUserId) {
+      // 清空 hook 中的状态
+      clearState()
+      // 清空组件中的状态
+      setSelectedConversationId(null)
+      setTempTargetUserId(null)
+    }
+    // 更新 ref 为当前用户ID
+    prevUserIdRef.current = currentUserId
+  }, [currentUserId, clearState])
+
   // 加载会话列表
   useEffect(() => {
     if (currentUserId) {
+      // 使用最新的 currentUserId，确保请求使用正确的用户ID
       fetchSessionList(currentUserId)
       fetchUnreadCount(currentUserId)
     }
